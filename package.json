@@ -1,0 +1,80 @@
+{
+  "name": "@foxy.io/node-api",
+  "version": "1.0.0-beta.4",
+  "description": "FoxyCart hAPI client for Node",
+  "main": "dist/index.js",
+  "types": "dist/index.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "test": "jest --config ./jest.config.json",
+    "lint": "tsc --noEmit && eslint \"src/**/*.ts\" --quiet --fix",
+    "build": "tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/foxy/foxy-node-api.git"
+  },
+  "keywords": [
+    "foxycart",
+    "foxy.io",
+    "foxy",
+    "serverless",
+    "nodejs",
+    "api"
+  ],
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/foxy/foxy-node-api/issues"
+  },
+  "homepage": "https://github.com/foxy/foxy-node-api#readme",
+  "devDependencies": {
+    "@babel/core": "^7.9.0",
+    "@babel/preset-env": "^7.9.0",
+    "@babel/preset-typescript": "^7.9.0",
+    "@types/clone": "^0.1.30",
+    "@types/jest": "^25.1.4",
+    "@types/mock-fs": "^4.10.0",
+    "@types/node-fetch": "^2.5.5",
+    "@types/traverse": "^0.6.32",
+    "@typescript-eslint/eslint-plugin": "^2.25.0",
+    "@typescript-eslint/parser": "^2.25.0",
+    "babel-jest": "^25.2.4",
+    "cz-conventional-changelog": "^3.1.0",
+    "eslint": "^6.8.0",
+    "eslint-config-prettier": "^6.10.1",
+    "eslint-plugin-prettier": "^3.1.2",
+    "husky": "^4.2.3",
+    "jest": "^25.2.4",
+    "lint-staged": "^10.0.10",
+    "mock-fs": "^4.11.0",
+    "prettier": "^2.0.2",
+    "ts-node": "^8.8.1",
+    "typescript": "^3.8.3"
+  },
+  "husky": {
+    "hooks": {
+      "prepare-commit-msg": "exec < /dev/tty && git cz --hook || true",
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "{src,test}/**/*.ts": "eslint --cache --fix"
+  },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
+  },
+  "dependencies": {
+    "clone": "^2.1.2",
+    "logform": "^2.1.2",
+    "node-fetch": "^2.6.0",
+    "normalize-url": "^5.0.0",
+    "traverse": "^0.6.6",
+    "ts-mixer": "^5.1.0",
+    "winston": "^3.2.1"
+  }
+}
