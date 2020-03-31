@@ -10,7 +10,7 @@ describe("FoxyApi.webhook", () => {
     const result = FoxyApi.webhook.verify({
       signature: "i'm",
       payload: "very",
-      key: "wrong"
+      key: "wrong",
     });
 
     expect(result).toBe(false);
@@ -20,7 +20,7 @@ describe("FoxyApi.webhook", () => {
     const result = FoxyApi.webhook.verify({
       signature: "055c620a2d1e459b9c4ed676146a6cce9d2ec2e7caf3dba64608c30c4477f532",
       payload: "this, on the other hand",
-      key: "is definitely right"
+      key: "is definitely right",
     });
 
     expect(result).toBe(true);

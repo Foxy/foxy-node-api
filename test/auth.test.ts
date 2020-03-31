@@ -8,7 +8,7 @@ async function createFoxy(...args: ConstructorParameters<typeof FoxyApi>) {
     clientId: "0",
     clientSecret: "1",
     refreshToken: "42",
-    ...args[0]
+    ...args[0],
   });
 }
 
@@ -77,9 +77,9 @@ describe("Entry: Auth", () => {
           Promise.resolve(
             JSON.stringify({
               access_token: "token_mock",
-              expires_in: 360
+              expires_in: 360,
             })
-          )
+          ),
       })
     );
     const foxy = await createFoxy();
@@ -104,7 +104,7 @@ describe("Entry: Auth", () => {
       "fx_auth_access_token",
       JSON.stringify({
         value: "cached_token_mock",
-        expiresAt: Date.now() + 3600000
+        expiresAt: Date.now() + 3600000,
       })
     );
 

@@ -12,7 +12,7 @@ describe("FoxyApi.sso", () => {
     const url = FoxyApi.sso.createUrl({
       customer: "customer_01",
       secret: "yes, very",
-      domain: "https://foxy-demo.foxycart.com"
+      domain: "https://foxy-demo.foxycart.com",
     });
 
     expect(url).toBe(
@@ -25,7 +25,7 @@ describe("FoxyApi.sso", () => {
       customer: "customer_01",
       secret: "yes, very",
       domain: "https://foxy-demo.foxycart.com",
-      timestamp: 1595406051672
+      timestamp: 1595406051672,
     });
 
     expect(url).toBe(
@@ -38,7 +38,7 @@ describe("FoxyApi.sso", () => {
       customer: "customer_01",
       secret: "yes, very",
       domain: "https://foxy-demo.foxycart.com",
-      session: "so_awesomely_unique"
+      session: "so_awesomely_unique",
     });
 
     expect(url).toBe(

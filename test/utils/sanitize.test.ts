@@ -23,7 +23,7 @@ describe("FoxyApi.sanitize", () => {
       password: 1,
       password_hash: 1,
       third_party_id: 1,
-      foo: 1
+      foo: 1,
     }).map(FoxyApi.sanitize.removeSensitiveData);
 
     expect(result).not.toHaveProperty("password");
@@ -37,13 +37,13 @@ describe("FoxyApi.sanitize", () => {
       "fx:attributes": [
         {
           name: "foo",
-          visibility: "private"
+          visibility: "private",
         },
         {
           name: "bar",
-          visibility: "public"
-        }
-      ]
+          visibility: "public",
+        },
+      ],
     }).map(FoxyApi.sanitize.removePrivateAttributes);
 
     expect(result["fx:attributes"]).toHaveLength(1);
