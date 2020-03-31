@@ -32,6 +32,7 @@
   "homepage": "https://github.com/foxy/foxy-node-api#readme",
   "devDependencies": {
     "@babel/core": "^7.9.0",
+    "@babel/plugin-proposal-class-properties": "^7.8.3",
     "@babel/preset-env": "^7.9.0",
     "@babel/preset-typescript": "^7.9.0",
     "@types/clone": "^0.1.30",
