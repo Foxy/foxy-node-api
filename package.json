@@ -9,7 +9,7 @@
   ],
   "scripts": {
     "test": "jest --config ./jest.config.json",
-    "lint": "tsc --noEmit && eslint \"src/**/*.ts\" --quiet --fix",
+    "lint": "tsc --noEmit && eslint \"{src,test}/**/*.ts\" --quiet --fix",
     "build": "tsc"
   },
   "repository": {
