@@ -12,3 +12,13 @@ export interface ApiGraph<T extends ApiGraph = any> {
   [key: string]: never | T;
   [key: number]: T;
 }
+
+/**
+ * Any resource received from the API that includes
+ * a set of links to other resources (relations).
+ */
+export interface Followable {
+  _links: {
+    [key: string]: { href: string };
+  };
+}

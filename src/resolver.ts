@@ -9,6 +9,12 @@ const throwIfVoid = async (promise: Promise<string | undefined>) => {
   return result;
 };
 
+/**
+ * Part of the API functionality that restores full URLs from
+ * the ordered relations lists trying to make as few requests as possible.
+ *
+ * **IMPORTANT:** this class is internal; using it in consumers code is not recommended.
+ */
 export class Resolver {
   constructor(
     protected _auth: Auth,
@@ -168,7 +174,14 @@ export class Resolver {
   }
 
   /**
-   * Resolves the URL based on the given path.
+   * Restores a full url from the path this resolver has
+   * been instantiated with making as few requests as possible.
+   *
+   * @example
+   *
+   * const url = await foxy.follow("fx:store").resolve();
+   *
+   * @param skipCache if true, all optimizations will be disabled and the resolver will perform a full tree traversal
    */
   async resolve(skipCache = false): Promise<string> {
     let url = this._base;

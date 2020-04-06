@@ -18,20 +18,62 @@ type SendResponse<Host> = (Host extends keyof Props ? Props[Host] : any) & {
   _links: any;
 };
 
-export interface SendInit<Host, Method = SendMethod<Host>> {
-  skipCache?: boolean;
-  method?: Method;
-  query?: URLSearchParams | Record<string, string>;
-  body?: SendBody<Host, Method> | string;
-}
-
 export interface SendRawInit<Host, Method = SendMethod<Host>> {
+  /**
+   * The absolute URL (either a `URL` instance or a string)
+   * to send the request to. Required.
+   */
   url: URL | string;
+
+  /**
+   * Request payload, either already serialized or in form of a serializable object.
+   * Not applicable to some request methods (e.g. `GET`). Empty by default.
+   */
   body?: SendBody<Host, Method> | string;
+
+  /**
+   * {@link https://developer.mozilla.org/docs/Web/HTTP/Methods HTTP method} to use in this request.
+   * Different relations support different sets of methods. If omitted, `GET` will be used by default.
+   */
   method?: Method;
 }
 
+export type SendInit<Host, Method = SendMethod<Host>> = Omit<SendRawInit<Host, Method>, "url"> & {
+  /**
+   * If true, all URL resolution optimizations will be disabled for this requests.
+   * This option is `false` by default.
+   */
+  skipCache?: boolean;
+
+  /**
+   * A key-value map containing the query parameters that you'd like to add to the URL when it's resolved.
+   * You can also use `URLSearchParams` if convenient. Empty set by default.
+   */
+  query?: URLSearchParams | Record<string, string>;
+};
+
+/**
+ * Part of the API functionality that sends the API requests and
+ * normalizes the responses if necessary.
+ *
+ * **IMPORTANT:** this class is internal; using it in consumers code is not recommended.
+ */
 export class Sender<Host extends string | number | symbol> extends Resolver {
+  /**
+   * Makes an API request to the specified URL, skipping the path construction
+   * and resolution. This is what `.fetch()` uses under the hood. Before calling
+   * this method, consider using a combination of `foxy.from(resource).fetch()`
+   * or `foxy.follow(...).fetch()` instead.
+   *
+   * @example
+   *
+   * const response = await foxy.follow("fx:store").fetchRaw({
+   *   url: "https://api.foxycart.com/stores/8",
+   *   method: "POST",
+   *   body: { ... }
+   * });
+   * @param init fetch-like request initializer supporting url, method and body params
+   */
   async fetchRaw(params: SendRawInit<Host>): Promise<SendResponse<Host>> {
     const method = params.method ?? "GET";
 
@@ -65,6 +107,21 @@ export class Sender<Host extends string | number | symbol> extends Resolver {
     });
   }
 
+  /**
+   * Resolves the resource URL and makes an API request
+   * according to the given configuration. A GET request
+   * without query parameters will be sent by default. Refer to our
+   * {@link https://api.foxycart.com/docs/cheat-sheet cheatsheet}
+   * for the list of available query parameters and HTTP methods.
+   *
+   * @example
+   *
+   * const { store_version } = await foxy.follow("fx:store").fetch({
+   *   query: { fields: "store_version" }
+   * });
+   *
+   * @param params API request options such as method, query or body
+   */
   async fetch(params?: SendInit<Host>): Promise<SendResponse<Host>> {
     let url = new URL(await this.resolve(params?.skipCache));
 
