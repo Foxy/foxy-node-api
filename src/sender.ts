@@ -1,5 +1,5 @@
 import fetch from "node-fetch";
-import * as traverse from "traverse";
+import traverse from "traverse";
 import { Methods } from "./types/methods";
 import { HTTPMethod, HTTPMethodWithBody } from "./types/utils";
 import { Resolver } from "./resolver";
