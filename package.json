@@ -9,6 +9,7 @@
   ],
   "scripts": {
     "test": "jest --config ./jest.config.json",
+    "test:watch": "jest --watch --config ./jest.config.json",
     "lint": "tsc --noEmit && eslint \"{src,test}/**/*.ts\" --quiet --fix",
     "build": "tsc"
   },
