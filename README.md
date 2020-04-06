@@ -148,3 +148,25 @@ await store.fetch({
 ```ts
 await store.fetch({ method: "DELETE" });
 ```
+
+## Development
+
+To get started, clone this repo locally and install the dependencies:
+
+```bash
+git clone https://github.com/foxy/foxy-node-api.git
+npm install
+```
+
+Running tests:
+
+```bash
+npm run test       # runs all tests and exits
+npm run test:watch # looks for changes and re-runs tests as you code
+```
+
+Committing changes with [commitizen](https://github.com/commitizen/cz-cli):
+
+```bash
+git commit # precommit hooks will lint the staged files and help you format your message correctly
+```
