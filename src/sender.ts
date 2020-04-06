@@ -73,8 +73,12 @@ export class Sender<Host extends string | number | symbol> extends Resolver {
       entries.forEach((v) => url.searchParams.append(...v));
     }
 
+    const rawParams: SendRawInit<Host> = traverse(params).map(function () {
+      if (this.key && ["query", "skipCache"].includes(this.key)) this.remove();
+    });
+
     try {
-      return await this.fetchRaw({ url, ...params });
+      return await this.fetchRaw({ url, ...rawParams });
     } catch (e) {
       if (!params?.skipCache && e.message.includes("No route found")) {
         this._auth.log({
@@ -83,7 +87,7 @@ export class Sender<Host extends string | number | symbol> extends Resolver {
         });
 
         url = new URL(await this.resolve(true));
-        return await this.fetchRaw({ url, ...params });
+        return this.fetchRaw({ url, ...rawParams });
       } else {
         this._auth.log({ level: "error", message: e.message });
         throw e;
