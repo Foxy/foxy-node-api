@@ -20,6 +20,7 @@ type AuthInit = {
   cache?: Cache;
   logLevel?: "error" | "warn" | "info" | "http" | "verbose" | "debug" | "silly";
   silent?: boolean;
+  endpoint?: string;
 };
 
 type PostInit = {
@@ -44,6 +45,7 @@ export class Auth {
   readonly clientId: string;
   readonly clientSecret: string;
   readonly refreshToken: string;
+  readonly endpoint: string;
   readonly version: Version;
   readonly cache: Cache;
 
@@ -62,6 +64,7 @@ export class Auth {
     this.refreshToken = refreshToken;
     this.version = config?.version ?? "1";
     this.cache = config?.cache ?? new MemoryCache();
+    this.endpoint = config?.endpoint ?? FOXY_API_URL;
 
     this._logger = winston.createLogger({
       level: config?.logLevel,
@@ -84,7 +87,7 @@ export class Auth {
     const token = await this.cache.get("fx_auth_access_token");
     if (this._validateToken(token)) return (JSON.parse(token) as StoredToken).value;
 
-    const response = await fetch(`${FOXY_API_URL}/token`, {
+    const response = await fetch(`${this.endpoint}/token`, {
       method: "POST",
       headers: {
         "FOXY-API-VERSION": this.version,
