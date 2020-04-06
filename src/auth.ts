@@ -2,6 +2,7 @@ import * as winston from "winston";
 import * as logform from "logform";
 import fetch from "node-fetch";
 import { Cache, MemoryCache } from "./utils/cache";
+import { Props } from "./types/props";
 
 import {
   FOXY_API_CLIENT_ID,
@@ -83,7 +84,7 @@ export class Auth {
     this._logger.log(entry);
   }
 
-  async getAccessToken(init?: PostInit): Promise<string> {
+  async getAccessToken(): Promise<string> {
     const token = await this.cache.get("fx_auth_access_token");
     if (this._validateToken(token)) return (JSON.parse(token) as StoredToken).value;
 
@@ -95,16 +96,16 @@ export class Auth {
       },
       body: new URLSearchParams({
         grant_type: "refresh_token",
-        refresh_token: init?.refreshToken ?? this.refreshToken,
-        client_secret: init?.clientSecret ?? this.clientSecret,
-        client_id: init?.clientId ?? this.clientId,
+        refresh_token: this.refreshToken,
+        client_secret: this.clientSecret,
+        client_id: this.clientId,
       }),
     });
 
     const text = await response.text();
 
     if (response.ok) {
-      const json = JSON.parse(text) as PostResponse;
+      const json = JSON.parse(text) as Props["fx:token"];
       const storedToken: StoredToken = {
         expiresAt: Date.now() + json.expires_in * 1000,
         value: json.access_token,
