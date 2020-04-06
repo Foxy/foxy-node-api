@@ -27,10 +27,10 @@ export class FoxyApi extends Auth {
   }
 
   follow<K extends keyof Graph>(key: K) {
-    return new Follower<Graph[K], K>(this, [key]);
+    return new Follower<Graph[K], K>(this, [key], this.endpoint);
   }
 
   fetchRaw<Host extends keyof Props = any>(init: SendRawInit<Host>) {
-    return new Sender<Host>(this).fetchRaw(init);
+    return new Sender<Host>(this, [], this.endpoint).fetchRaw(init);
   }
 }
