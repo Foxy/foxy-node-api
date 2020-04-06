@@ -53,15 +53,13 @@ export class Sender<Host extends string | number | symbol> extends Resolver {
     if (!response.ok) throw new Error(await response.text());
 
     return traverse(await response.json()).map(function (value: any) {
-      if (!value) return;
-
       // formats locales as "en-US" as opposed to "en_US"
-      if (this.key === "locale_code") {
+      if (value && this.key === "locale_code") {
         return this.update(value.replace("_", "-"));
       }
 
       // formats timezone offset as "+03:00" as opposed to "+0300"
-      if (this.key && this.key.split("_").includes("date")) {
+      if (value && this.key && this.key.split("_").includes("date")) {
         return this.update(value.replace(/([+-])(\d{2})(\d{2})$/gi, "$1$2:$3"));
       }
     });
