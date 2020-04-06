@@ -85,7 +85,7 @@ const foxy = new FoxyApi({
 ```ts
 const foxy = new FoxyApi({
   // ...
-  silence: true, // don't log errors and such to console at all
+  silent: true, // don't log errors and such to console at all
 });
 ```
 
