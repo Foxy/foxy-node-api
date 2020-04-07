@@ -1735,18 +1735,16 @@ export interface Props {
   };
 
   "fx:token": {
-    /** The OAuth grant type being requested as used for {@link http://tools.ietf.org/html/rfc6749#page-10 Refresh Tokens} and the {@link https://tools.ietf.org/html/rfc6749#page-24 Authorization Code Grant}. */
-    grant_type: string;
     /** The OAuth refresh token. This token is returned in the response whenever creating a client, user or store or when doing an authorization code grant. */
     refresh_token: string;
-    /** Authorization Code granted via the Authorization Code grant. */
-    code: string;
-    /** The redirect uri defined for this OAuth client. Used when doing Authorization Code grant and it must match what is stored for the OAuth client. */
-    redirect_uri: string;
-    /** The client_id for your FoxyCart client resource. */
-    client_id: string;
-    /** Although the OAuth 2.0 spec supports passing the client secret as a url param, it is much better to use HTTP Basic auth instead. */
-    client_secret: string;
+    /** The OAuth access token. Access tokens expire after 7200 seconds (2 hours). */
+    access_token: string;
+    /** Lifespan of the access token in seconds. */
+    expires_in: number;
+    /** Returned token type, e.g. `bearer`. */
+    token_type: string;
+    /** The scopes assigned to this token. */
+    scope: string;
   };
 
   "fx:property_helpers": {

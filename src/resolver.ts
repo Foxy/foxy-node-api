@@ -9,12 +9,22 @@ const throwIfVoid = async (promise: Promise<string | undefined>) => {
   return result;
 };
 
+/**
+ * Part of the API functionality that restores full URLs from
+ * the ordered relations lists trying to make as few requests as possible.
+ *
+ * **IMPORTANT:** this class is internal; using it in consumers code is not recommended.
+ */
 export class Resolver {
   constructor(
     protected _auth: Auth,
     protected _path: PathMember[] = [],
     protected _base = FOXY_API_URL
   ) {}
+
+  private get _apiUrl() {
+    return new URL(this._base).origin;
+  }
 
   private async _cacheIdentifiers(url: string) {
     const queue: Promise<any>[] = [];
@@ -83,14 +93,14 @@ export class Resolver {
         break;
 
       case "https://api.foxycart.com/rels":
-        result = `${FOXY_API_URL}/rels`;
+        result = `${this._apiUrl}/rels`;
         break;
 
       case "fx:property_helpers":
       case "fx:reporting":
       case "fx:encode":
       case "fx:token":
-        result = `${FOXY_API_URL}/${rel.substring(3)}`;
+        result = `${this._apiUrl}/${rel.substring(3)}`;
         break;
 
       default:
@@ -109,19 +119,19 @@ export class Resolver {
 
     switch (rel) {
       case "fx:user":
-        result = `${FOXY_API_URL}/users/${await throwIfVoid(whenGotUser)}`;
+        result = `${this._apiUrl}/users/${await throwIfVoid(whenGotUser)}`;
         break;
 
       case "fx:stores":
-        result = `${FOXY_API_URL}/users/${await throwIfVoid(whenGotUser)}/stores`;
+        result = `${this._apiUrl}/users/${await throwIfVoid(whenGotUser)}/stores`;
         break;
 
       case "fx:store":
-        result = `${FOXY_API_URL}/stores/${await throwIfVoid(whenGotStore)}`;
+        result = `${this._apiUrl}/stores/${await throwIfVoid(whenGotStore)}`;
         break;
 
       case "fx:subscription_settings":
-        result = `${FOXY_API_URL}/store_subscription_settings/${await throwIfVoid(whenGotStore)}`;
+        result = `${this._apiUrl}/store_subscription_settings/${await throwIfVoid(whenGotStore)}`;
         break;
 
       case "fx:users":
@@ -152,7 +162,7 @@ export class Resolver {
       case "fx:store_shipping_methods":
       case "fx:integrations":
       case "fx:native_integrations":
-        result = `${FOXY_API_URL}/stores/${await throwIfVoid(whenGotStore)}/${rel.substring(3)}`;
+        result = `${this._apiUrl}/stores/${await throwIfVoid(whenGotStore)}/${rel.substring(3)}`;
         break;
 
       default:
@@ -164,7 +174,14 @@ export class Resolver {
   }
 
   /**
-   * Resolves the URL based on the given path.
+   * Restores a full url from the path this resolver has
+   * been instantiated with making as few requests as possible.
+   *
+   * @example
+   *
+   * const url = await foxy.follow("fx:store").resolve();
+   *
+   * @param skipCache if true, all optimizations will be disabled and the resolver will perform a full tree traversal
    */
   async resolve(skipCache = false): Promise<string> {
     let url = this._base;
