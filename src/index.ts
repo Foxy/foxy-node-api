@@ -91,8 +91,8 @@ class Api extends Auth {
    *
    * @param init fetch-like request initializer supporting url, method and body params
    */
-  fetchRaw<Host extends keyof Props = any>(init: SendRawInit<Host>) {
-    return new Sender<Host>(this, [], this.endpoint).fetchRaw(init);
+  fetchRaw<Host extends keyof Props = any, Graph extends ApiGraph = any>(init: SendRawInit<Host>) {
+    return new Sender<Graph, Host>(this, [], this.endpoint).fetchRaw(init);
   }
 }
 

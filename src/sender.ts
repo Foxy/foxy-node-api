@@ -1,9 +1,10 @@
 import fetch from "node-fetch";
 import traverse from "traverse";
 import { Methods } from "./types/methods";
-import { HTTPMethod, HTTPMethodWithBody } from "./types/utils";
+import { HTTPMethod, HTTPMethodWithBody, ApiGraph, PathMember } from "./types/utils";
 import { Resolver } from "./resolver";
 import { Props } from "./types/props";
+import { Resource } from "./types/resource";
 
 type SendBody<Host, Method> = Method extends HTTPMethodWithBody
   ? Host extends keyof Props
@@ -12,11 +13,6 @@ type SendBody<Host, Method> = Method extends HTTPMethodWithBody
   : never;
 
 type SendMethod<Host> = Host extends keyof Methods ? Methods[Host] : HTTPMethod;
-
-type SendResponse<Host> = (Host extends keyof Props ? Props[Host] : any) & {
-  _embedded: any;
-  _links: any;
-};
 
 export interface SendRawInit<Host, Method = SendMethod<Host>> {
   /**
@@ -58,7 +54,7 @@ export type SendInit<Host, Method = SendMethod<Host>> = Omit<SendRawInit<Host, M
  *
  * **IMPORTANT:** this class is internal; using it in consumers code is not recommended.
  */
-export class Sender<Host extends string | number | symbol> extends Resolver {
+export class Sender<Graph extends ApiGraph, Host extends PathMember> extends Resolver {
   /**
    * Makes an API request to the specified URL, skipping the path construction
    * and resolution. This is what `.fetch()` uses under the hood. Before calling
@@ -74,7 +70,7 @@ export class Sender<Host extends string | number | symbol> extends Resolver {
    * });
    * @param init fetch-like request initializer supporting url, method and body params
    */
-  async fetchRaw(params: SendRawInit<Host>): Promise<SendResponse<Host>> {
+  async fetchRaw(params: SendRawInit<Host>): Promise<Resource<Graph, Host>> {
     const method = params.method ?? "GET";
 
     const response = await fetch(params.url, {
@@ -122,7 +118,7 @@ export class Sender<Host extends string | number | symbol> extends Resolver {
    *
    * @param params API request options such as method, query or body
    */
-  async fetch(params?: SendInit<Host>): Promise<SendResponse<Host>> {
+  async fetch(params?: SendInit<Host>): Promise<Resource<Graph, Host>> {
     let url = new URL(await this.resolve(params?.skipCache));
 
     if (params?.query) {
