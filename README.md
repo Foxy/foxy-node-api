@@ -12,6 +12,12 @@ npm i @foxy.io/node-api
 
 ### Step 2: Import
 
+```js
+const { FoxyApi } = require("@foxy.io/node-api");
+```
+
+With TypeScript or Node v13+ you can also use [ES Modules](http://nodejs.org/docs/latest-v13.x/api/esm.html…):
+
 ```ts
 import { FoxyApi } from "@foxy.io/node-api";
 ```
