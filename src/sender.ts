@@ -42,6 +42,13 @@ export type SendInit<Host, Method = SendMethod<Host>> = Omit<SendRawInit<Host, M
   skipCache?: boolean;
 
   /**
+   * An array of fields to include in the response object (aka partial resource).
+   * Same as setting the `fields` query parameter. If you provide values in both `fields` and `query`,
+   * they will be parsed, deduped and merged.
+   */
+  fields?: Host extends keyof Props ? (keyof Props[Host])[] : never;
+
+  /**
    * A key-value map containing the query parameters that you'd like to add to the URL when it's resolved.
    * You can also use `URLSearchParams` if convenient. Empty set by default.
    */
@@ -118,12 +125,24 @@ export class Sender<Graph extends ApiGraph, Host extends PathMember> extends Res
    *
    * @param params API request options such as method, query or body
    */
-  async fetch(params?: SendInit<Host>): Promise<Resource<Graph, Host>> {
+  async fetch<T extends SendInit<Host>>(params?: T): Promise<Resource<Graph, Host, T["fields"]>> {
     let url = new URL(await this.resolve(params?.skipCache));
 
     if (params?.query) {
       const entries = [...new URLSearchParams(params.query).entries()];
       entries.forEach((v) => url.searchParams.append(...v));
+    }
+
+    const queryFields = url.searchParams
+      .getAll("fields")
+      .map((v) => v.split(","))
+      .reduce<string[]>((p, c) => p.concat(c), []);
+
+    const paramsFields = (params?.fields ?? []) as string[];
+    const mergedFields = [...new Set(queryFields.concat(paramsFields))];
+
+    if (mergedFields.length > 0) {
+      url.searchParams.set("fields", mergedFields.join(","));
     }
 
     const rawParams: SendRawInit<Host> = traverse(params).map(function () {

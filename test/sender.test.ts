@@ -2,6 +2,7 @@ import { createNotFoundError, createForbiddenError } from "./mocks/errors";
 import { Resolver } from "../src/resolver";
 import { Sender } from "../src/sender";
 import { Auth } from "../src/auth";
+import { Graph } from "../src/types/graph";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import fetch from "node-fetch";
@@ -173,6 +174,34 @@ describe("Sender", () => {
       await sender.fetch({ query: url.searchParams }).catch(() => void 0);
 
       expect(spy).toHaveBeenLastCalledWith({ url });
+    });
+
+    it("adds fields param to the request query params if provided", async () => {
+      const sender = new Sender<Graph, "fx:token">(auth, ["fx:token"], "https://api.foxy.local");
+      const spy = jest.spyOn(sender, "fetchRaw");
+      const url = new URL(await sender.resolve());
+
+      url.searchParams.set("fields", "scope,expires_in");
+      await sender.fetch({ fields: ["scope", "expires_in"] }).catch(() => void 0);
+
+      expect(spy).toHaveBeenLastCalledWith(expect.objectContaining({ url }));
+    });
+
+    it("merges and dedupes fields param with the fields in query", async () => {
+      const sender = new Sender<Graph, "fx:token">(auth, ["fx:token"], "https://api.foxy.local");
+      const spy = jest.spyOn(sender, "fetchRaw");
+      const url = new URL(await sender.resolve());
+
+      url.searchParams.set("fields", "expires_in,access_token,scope");
+
+      try {
+        await sender.fetch({
+          fields: ["scope", "expires_in", "access_token"],
+          query: { fields: "expires_in,access_token" },
+        });
+      } catch {}
+
+      expect(spy).toHaveBeenLastCalledWith(expect.objectContaining({ url }));
     });
 
     it("passes params.method to .fetchRaw() when provided in args", async () => {
