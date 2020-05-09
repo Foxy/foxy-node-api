@@ -2,7 +2,7 @@ import { createNotFoundError, createForbiddenError } from "./mocks/errors";
 import { Resolver } from "../src/resolver";
 import { Sender } from "../src/sender";
 import { Auth } from "../src/auth";
-import { Graph } from "../src/types/graph";
+import { Graph } from "../src/types/api/graph";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import fetch from "node-fetch";
@@ -185,6 +185,20 @@ describe("Sender", () => {
       await sender.fetch({ fields: ["scope", "expires_in"] }).catch(() => void 0);
 
       expect(spy).toHaveBeenLastCalledWith(expect.objectContaining({ url }));
+    });
+
+    it("serializes the zoom param if provided and adds it to the query params", async () => {
+      const sender = new Sender<any, any>(auth, [], "https://api.foxy.local");
+      const tests = ["foo", ["foo", "bar"], { foo: "bar" }, ["foo", { bar: "baz" }]];
+      const zooms = ["foo", "foo,bar", "foo:bar", "foo,bar:baz"].map(encodeURIComponent);
+
+      for (const test of tests) {
+        const spy = jest.spyOn(sender, "fetchRaw");
+        const url = new URL(`https://api.foxy.local/?zoom=${zooms[tests.indexOf(test)]}`);
+
+        await sender.fetch({ zoom: test as any }).catch(() => void 0);
+        expect(spy).toHaveBeenLastCalledWith(expect.objectContaining({ url }));
+      }
     });
 
     it("merges and dedupes fields param with the fields in query", async () => {

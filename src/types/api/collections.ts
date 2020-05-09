@@ -1,4 +1,4 @@
-export interface Embeds {
+export interface Collections {
   "fx:taxes": "fx:tax";
   "fx:applied_coupon_codes": "fx:coupon_code";
   "fx:applied_taxes": "fx:applied_tax";
@@ -36,6 +36,7 @@ export interface Embeds {
   "fx:store_versions": "fx:store_version";
   "fx:store_shipping_methods": "fx:shipping_method";
   "fx:store_shipping_services": "fx:shipping_service";
+  "fx:transactions": "fx:transaction";
   "fx:subscriptions": "fx:subscription";
   "fx:subscription_settings": "fx:subscription_settings";
   "fx:template_configs": "fx:template_config";

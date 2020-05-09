@@ -1,10 +1,20 @@
 import fetch from "node-fetch";
 import traverse from "traverse";
-import { Methods } from "./types/methods";
-import { HTTPMethod, HTTPMethodWithBody, ApiGraph, PathMember } from "./types/utils";
+import { Methods } from "./types/api/methods";
+
+import {
+  HTTPMethod,
+  HTTPMethodWithBody,
+  ApiGraph,
+  PathMember,
+  ZoomUnion,
+  NeverIfUndefined,
+  Resource,
+} from "./types/utils";
+
 import { Resolver } from "./resolver";
-import { Props } from "./types/props";
-import { Resource } from "./types/resource";
+import { Props } from "./types/api/props";
+import { Collections } from "./types/api/collections";
 
 type SendBody<Host, Method> = Method extends HTTPMethodWithBody
   ? Host extends keyof Props
@@ -46,13 +56,41 @@ export type SendInit<Host, Method = SendMethod<Host>> = Omit<SendRawInit<Host, M
    * Same as setting the `fields` query parameter. If you provide values in both `fields` and `query`,
    * they will be parsed, deduped and merged.
    */
-  fields?: Host extends keyof Props ? (keyof Props[Host])[] : never;
+  fields?: Host extends keyof Props
+    ? readonly (keyof Props[Host])[]
+    : Host extends keyof Collections
+    ? readonly (keyof Props[Collections[Host]])[]
+    : never;
 
   /**
    * A key-value map containing the query parameters that you'd like to add to the URL when it's resolved.
    * You can also use `URLSearchParams` if convenient. Empty set by default.
    */
   query?: URLSearchParams | Record<string, string>;
+
+  /**
+   * Zoomable resources to embed in the response. Pass a string literal
+   * for a single resource, an array of string literals for multiple,
+   * and an object for multi-level zooming. Just like in the raw query
+   * parameter value, only bare relation names are supported (without the `fx` prefix and
+   * the `https://api.foxycart.com/rels` path before the relation name).
+   *
+   * @see https://api.foxycart.com/docs/cheat-sheet ("Zooming" section).
+   * @example
+   *
+   * // &zoom=transactions
+   * { zoom: "transactions" }
+   *
+   * // &zoom=transactions,customer
+   * { zoom: [ "transactions, customer" ] }
+   *
+   * // &zoom=customer:default_billing_address
+   * { zoom: { customer: ["default_billing_address"] } }
+   *
+   * // &zoom=transactions,customer:default_billing_address
+   * { zoom: [ "transactions", { customer: ["default_billing_address"] } ] }
+   */
+  zoom?: ZoomUnion<Host>;
 };
 
 /**
@@ -125,7 +163,9 @@ export class Sender<Graph extends ApiGraph, Host extends PathMember> extends Res
    *
    * @param params API request options such as method, query or body
    */
-  async fetch<T extends SendInit<Host>>(params?: T): Promise<Resource<Graph, Host, T["fields"]>> {
+  async fetch<T extends SendInit<Host>>(
+    params?: T
+  ): Promise<Resource<Graph, Host, NeverIfUndefined<T["fields"]>, T["zoom"]>> {
     let url = new URL(await this.resolve(params?.skipCache));
 
     if (params?.query) {
@@ -145,12 +185,16 @@ export class Sender<Graph extends ApiGraph, Host extends PathMember> extends Res
       url.searchParams.set("fields", mergedFields.join(","));
     }
 
+    if (params?.zoom) {
+      url.searchParams.set("zoom", this._getZoomQueryValue("", params.zoom));
+    }
+
     const rawParams: SendRawInit<Host> = traverse(params).map(function () {
-      if (this.key && ["query", "skipCache"].includes(this.key)) this.remove();
+      if (this.key && ["zoom", "query", "fields", "skipCache"].includes(this.key)) this.remove();
     });
 
     try {
-      return await this.fetchRaw({ url, ...rawParams });
+      return (await this.fetchRaw({ url, ...rawParams })) as any;
     } catch (e) {
       if (!params?.skipCache && e.message.includes("No route found")) {
         this._auth.log({
@@ -159,11 +203,22 @@ export class Sender<Graph extends ApiGraph, Host extends PathMember> extends Res
         });
 
         url = new URL(await this.resolve(true));
-        return this.fetchRaw({ url, ...rawParams });
+        return this.fetchRaw({ url, ...rawParams }) as any;
       } else {
         this._auth.log({ level: "error", message: e.message });
         throw e;
       }
     }
+  }
+
+  private _getZoomQueryValue(prefix: string, zoom: ZoomUnion<Host>): string {
+    const scope = prefix === "" ? "" : prefix + ":";
+
+    if (typeof zoom === "string") return scope + zoom;
+    if (Array.isArray(zoom)) return zoom.map((v) => this._getZoomQueryValue(prefix, v)).join();
+
+    return Object.entries(zoom)
+      .map(([key, value]) => this._getZoomQueryValue(scope + key, value))
+      .join();
   }
 }
