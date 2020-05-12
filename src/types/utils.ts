@@ -141,11 +141,11 @@ type ResourceProps<
   Curie extends PropertyKey,
   Fields extends OptionalArray = never
 > = Curie extends keyof Props
-  ? [Fields] extends [never | unknown]
+  ? [Fields] extends [never]
     ? Props[Curie]
     : Fields extends OptionalArray<keyof Props[Curie]>
     ? Pick<Props[Curie], ArrayItem<Fields>>
-    : {}
+    : Props[Curie]
   : {};
 
 /**
