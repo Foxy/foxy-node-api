@@ -165,7 +165,14 @@ export class Sender<Graph extends ApiGraph, Host extends PathMember> extends Res
    */
   async fetch<T extends SendInit<Host>>(
     params?: T
-  ): Promise<Resource<Graph, Host, NeverIfUndefined<T["fields"]>, T["zoom"]>> {
+  ): Promise<
+    Resource<
+      Graph,
+      Host,
+      NeverIfUndefined<T["fields"]>,
+      T["fields"] extends any[] ? never : T["zoom"]
+    >
+  > {
     let url = new URL(await this.resolve(params?.skipCache));
 
     if (params?.query) {

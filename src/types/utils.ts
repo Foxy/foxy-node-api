@@ -186,7 +186,10 @@ type ResourceEmbeds<
   : {
       [EmbeddedCurie in
         | ZoomCuries<Zoom>
-        | Extract<keyof Graph, DefaultZoom>]: EmbeddedCurie extends keyof Collections
+        | Extract<
+            keyof Graph,
+            Fields extends any[] ? "" : DefaultZoom
+          >]: EmbeddedCurie extends keyof Collections
         ? Array<
             Resource<
               ArrayItem<Graph[EmbeddedCurie]>,
