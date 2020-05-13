@@ -187,6 +187,28 @@ describe("Sender", () => {
       expect(spy).toHaveBeenLastCalledWith(expect.objectContaining({ url }));
     });
 
+    it("adds limit param to the request query params if provided", async () => {
+      const sender = new Sender<any, any>(auth, [], "https://api.foxy.local");
+      const spy = jest.spyOn(sender, "fetchRaw");
+      const url = new URL(await sender.resolve());
+
+      url.searchParams.set("limit", "99");
+      await sender.fetch({ limit: 99 }).catch(() => void 0);
+
+      expect(spy).toHaveBeenLastCalledWith(expect.objectContaining({ url }));
+    });
+
+    it("adds offset param to the request query params if provided", async () => {
+      const sender = new Sender<any, any>(auth, [], "https://api.foxy.local");
+      const spy = jest.spyOn(sender, "fetchRaw");
+      const url = new URL(await sender.resolve());
+
+      url.searchParams.set("offset", "99");
+      await sender.fetch({ offset: 99 }).catch(() => void 0);
+
+      expect(spy).toHaveBeenLastCalledWith(expect.objectContaining({ url }));
+    });
+
     it("serializes the zoom param if provided and adds it to the query params", async () => {
       const sender = new Sender<any, any>(auth, [], "https://api.foxy.local");
       const tests = ["foo", ["foo", "bar"], { foo: "bar" }, ["foo", { bar: "baz" }]];

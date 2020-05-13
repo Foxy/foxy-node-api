@@ -91,6 +91,21 @@ export type SendInit<Host, Method = SendMethod<Host>> = Omit<SendRawInit<Host, M
    * { zoom: [ "transactions", { customer: ["default_billing_address"] } ] }
    */
   zoom?: ZoomUnion<Host>;
+
+  /**
+   * Out of the box, the API includes pagination links to move between pages of results via
+   * the rels `first`, `prev`, `next` and `last`, but you can also control the number of results per page
+   * with this parameter. The API returns 20 items per page by default,
+   * and currently the maximum results per page is 300.
+   */
+  limit?: number;
+
+  /**
+   * Out of the box, the API includes pagination links to move between pages of results via
+   * the rels `first`, `prev`, `next` and `last`, but you can also specify a starting offset for the results
+   * with this parameter. The default value is 0.
+   */
+  offset?: number;
 };
 
 /**
@@ -196,9 +211,17 @@ export class Sender<Graph extends ApiGraph, Host extends PathMember> extends Res
       url.searchParams.set("zoom", this._getZoomQueryValue("", params.zoom));
     }
 
-    const rawParams: SendRawInit<Host> = traverse(params).map(function () {
-      if (this.key && ["zoom", "query", "fields", "skipCache"].includes(this.key)) this.remove();
-    });
+    if (params?.limit) {
+      url.searchParams.set("limit", params.limit.toFixed(0));
+    }
+
+    if (params?.offset) {
+      url.searchParams.set("offset", params.offset.toFixed(0));
+    }
+
+    const rawParams: SendRawInit<Host> = { url };
+    if (params?.body) rawParams.body = params.body;
+    if (params?.method) rawParams.method = params.method;
 
     try {
       return (await this.fetchRaw({ url, ...rawParams })) as any;
