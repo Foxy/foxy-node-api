@@ -10,11 +10,12 @@ import {
   ZoomUnion,
   NeverIfUndefined,
   Resource,
+  Fields,
+  Order,
 } from "./types/utils";
 
 import { Resolver } from "./resolver";
 import { Props } from "./types/api/props";
-import { Collections } from "./types/api/collections";
 
 type SendBody<Host, Method> = Method extends HTTPMethodWithBody
   ? Host extends keyof Props
@@ -56,11 +57,7 @@ export type SendInit<Host, Method = SendMethod<Host>> = Omit<SendRawInit<Host, M
    * Same as setting the `fields` query parameter. If you provide values in both `fields` and `query`,
    * they will be parsed, deduped and merged.
    */
-  fields?: Host extends keyof Props
-    ? readonly (keyof Props[Host])[]
-    : Host extends keyof Collections
-    ? readonly (keyof Props[Collections[Host]])[]
-    : never;
+  fields?: Fields<Host>;
 
   /**
    * A key-value map containing the query parameters that you'd like to add to the URL when it's resolved.
@@ -91,6 +88,27 @@ export type SendInit<Host, Method = SendMethod<Host>> = Omit<SendRawInit<Host, M
    * { zoom: [ "transactions", { customer: ["default_billing_address"] } ] }
    */
   zoom?: ZoomUnion<Host>;
+
+  /**
+   * You can adjust the sorting order of the collection response using this parameter.
+   * Default direction is `asc` (ascending).
+   *
+   * @see https://api.foxycart.com/docs/cheat-sheet ("Sorting" section).
+   * @example
+   *
+   * // &order=date_created
+   * { order: "date_created" }
+   *
+   * // &order=date_created desc
+   * { order: { date_created: "desc" } }
+   *
+   * // &order=date_created,transaction_date
+   * { order: ["date_created", "transaction_date"] }
+   *
+   * // &order=date_created desc,transaction_date
+   * { order: [ { date_created: "desc" }, "transaction_date"] }
+   */
+  order?: Order<Host>;
 
   /**
    * Out of the box, the API includes pagination links to move between pages of results via
@@ -219,6 +237,10 @@ export class Sender<Graph extends ApiGraph, Host extends PathMember> extends Res
       url.searchParams.set("offset", params.offset.toFixed(0));
     }
 
+    if (params?.order) {
+      url.searchParams.set("order", this._getOrderQueryValue(params.order));
+    }
+
     const rawParams: SendRawInit<Host> = { url };
     if (params?.body) rawParams.body = params.body;
     if (params?.method) rawParams.method = params.method;
@@ -249,6 +271,18 @@ export class Sender<Graph extends ApiGraph, Host extends PathMember> extends Res
 
     return Object.entries(zoom)
       .map(([key, value]) => this._getZoomQueryValue(scope + key, value))
+      .join();
+  }
+
+  private _getOrderQueryValue(order: Order<Host>): string {
+    if (typeof order === "string") return order;
+
+    if (Array.isArray(order)) {
+      return order.map((item) => this._getOrderQueryValue(item)).join();
+    }
+
+    return Object.entries(order)
+      .map(([key, value]) => `${key} ${value}`)
       .join();
   }
 }

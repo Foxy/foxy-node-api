@@ -220,3 +220,30 @@ export type Resource<
   Fields extends OptionalArray = never,
   Zoom = never
 > = ResourceBase<Graph, Curie, Fields, ResourceEmbeds<Graph, Curie, Fields, Zoom>>;
+
+/**
+ * Constructs an array type which values are restricted to the keys
+ * of the resource identified by the provided compact URI.
+ *
+ * @template Curie Compact URI identifying the target resource.
+ */
+export type Fields<Curie> = Curie extends keyof Props
+  ? readonly (keyof Props[Curie])[]
+  : Curie extends keyof Collections
+  ? readonly (keyof Props[Collections[Curie]])[]
+  : never;
+
+/**
+ * Constructs a union type describing possible order param
+ * values for the given compact URI. Order can be expressed
+ * as string, array or record.
+ *
+ * @template Curie Compact URI of the target resource.
+ */
+export type Order<Curie> =
+  | ArrayItem<Fields<Curie>>
+  | readonly (
+      | ArrayItem<Fields<Curie>>
+      | Partial<Record<ArrayItem<Fields<Curie>>, "asc" | "desc">>
+    )[]
+  | Partial<Record<ArrayItem<Fields<Curie>>, "asc" | "desc">>;

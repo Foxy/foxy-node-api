@@ -209,6 +209,21 @@ describe("Sender", () => {
       expect(spy).toHaveBeenLastCalledWith(expect.objectContaining({ url }));
     });
 
+    it("serializes the order param if provided and adds it to the query params", async () => {
+      const sender = new Sender<any, any>(auth, [], "https://api.foxy.local");
+      const tests = ["foo", ["foo", "bar"], { foo: "bar" }, ["foo", { bar: "baz" }]];
+      const orders = ["foo", "foo,bar", "foo bar", "foo,bar baz"];
+
+      for (const test of tests) {
+        const spy = jest.spyOn(sender, "fetchRaw");
+        const url = new URL("https://api.foxy.local");
+        url.searchParams.set("order", orders[tests.indexOf(test)]);
+
+        await sender.fetch({ order: test as any }).catch(() => void 0);
+        expect(spy).toHaveBeenLastCalledWith(expect.objectContaining({ url }));
+      }
+    });
+
     it("serializes the zoom param if provided and adds it to the query params", async () => {
       const sender = new Sender<any, any>(auth, [], "https://api.foxy.local");
       const tests = ["foo", ["foo", "bar"], { foo: "bar" }, ["foo", { bar: "baz" }]];
