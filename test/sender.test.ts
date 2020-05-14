@@ -2,6 +2,7 @@ import { createNotFoundError, createForbiddenError } from "./mocks/errors";
 import { Resolver } from "../src/resolver";
 import { Sender } from "../src/sender";
 import { Auth } from "../src/auth";
+import { Graph } from "../src/types/api/graph";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import fetch from "node-fetch";
@@ -173,6 +174,85 @@ describe("Sender", () => {
       await sender.fetch({ query: url.searchParams }).catch(() => void 0);
 
       expect(spy).toHaveBeenLastCalledWith({ url });
+    });
+
+    it("adds fields param to the request query params if provided", async () => {
+      const sender = new Sender<Graph, "fx:token">(auth, ["fx:token"], "https://api.foxy.local");
+      const spy = jest.spyOn(sender, "fetchRaw");
+      const url = new URL(await sender.resolve());
+
+      url.searchParams.set("fields", "scope,expires_in");
+      await sender.fetch({ fields: ["scope", "expires_in"] }).catch(() => void 0);
+
+      expect(spy).toHaveBeenLastCalledWith(expect.objectContaining({ url }));
+    });
+
+    it("adds limit param to the request query params if provided", async () => {
+      const sender = new Sender<any, any>(auth, [], "https://api.foxy.local");
+      const spy = jest.spyOn(sender, "fetchRaw");
+      const url = new URL(await sender.resolve());
+
+      url.searchParams.set("limit", "99");
+      await sender.fetch({ limit: 99 }).catch(() => void 0);
+
+      expect(spy).toHaveBeenLastCalledWith(expect.objectContaining({ url }));
+    });
+
+    it("adds offset param to the request query params if provided", async () => {
+      const sender = new Sender<any, any>(auth, [], "https://api.foxy.local");
+      const spy = jest.spyOn(sender, "fetchRaw");
+      const url = new URL(await sender.resolve());
+
+      url.searchParams.set("offset", "99");
+      await sender.fetch({ offset: 99 }).catch(() => void 0);
+
+      expect(spy).toHaveBeenLastCalledWith(expect.objectContaining({ url }));
+    });
+
+    it("serializes the order param if provided and adds it to the query params", async () => {
+      const sender = new Sender<any, any>(auth, [], "https://api.foxy.local");
+      const tests = ["foo", ["foo", "bar"], { foo: "bar" }, ["foo", { bar: "baz" }]];
+      const orders = ["foo", "foo,bar", "foo bar", "foo,bar baz"];
+
+      for (const test of tests) {
+        const spy = jest.spyOn(sender, "fetchRaw");
+        const url = new URL("https://api.foxy.local");
+        url.searchParams.set("order", orders[tests.indexOf(test)]);
+
+        await sender.fetch({ order: test as any }).catch(() => void 0);
+        expect(spy).toHaveBeenLastCalledWith(expect.objectContaining({ url }));
+      }
+    });
+
+    it("serializes the zoom param if provided and adds it to the query params", async () => {
+      const sender = new Sender<any, any>(auth, [], "https://api.foxy.local");
+      const tests = ["foo", ["foo", "bar"], { foo: "bar" }, ["foo", { bar: "baz" }]];
+      const zooms = ["foo", "foo,bar", "foo:bar", "foo,bar:baz"].map(encodeURIComponent);
+
+      for (const test of tests) {
+        const spy = jest.spyOn(sender, "fetchRaw");
+        const url = new URL(`https://api.foxy.local/?zoom=${zooms[tests.indexOf(test)]}`);
+
+        await sender.fetch({ zoom: test as any }).catch(() => void 0);
+        expect(spy).toHaveBeenLastCalledWith(expect.objectContaining({ url }));
+      }
+    });
+
+    it("merges and dedupes fields param with the fields in query", async () => {
+      const sender = new Sender<Graph, "fx:token">(auth, ["fx:token"], "https://api.foxy.local");
+      const spy = jest.spyOn(sender, "fetchRaw");
+      const url = new URL(await sender.resolve());
+
+      url.searchParams.set("fields", "expires_in,access_token,scope");
+
+      try {
+        await sender.fetch({
+          fields: ["scope", "expires_in", "access_token"],
+          query: { fields: "expires_in,access_token" },
+        });
+      } catch {}
+
+      expect(spy).toHaveBeenLastCalledWith(expect.objectContaining({ url }));
     });
 
     it("passes params.method to .fetchRaw() when provided in args", async () => {

@@ -7,7 +7,7 @@ import { Sender } from "./sender";
  *
  * **IMPORTANT:** this class is internal; using it in consumers code is not recommended.
  */
-export class Follower<Graph extends ApiGraph, Host extends PathMember> extends Sender<Host> {
+export class Follower<Graph extends ApiGraph, Host extends PathMember> extends Sender<Graph, Host> {
   /**
    * Navigates to the nested resource, building a request query.
    * Calling this method will not fetch your data immediately. For the list of relations please refer to the

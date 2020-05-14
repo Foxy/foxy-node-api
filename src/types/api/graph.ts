@@ -155,13 +155,31 @@ interface Customer {
   "fx:customer_addresses": IndexedCollection<Address>;
 }
 
+interface DiscountDetail {
+  "self": DiscountDetail;
+  "fx:store": Store;
+  "fx:item": Item;
+  "fx:transaction": Transaction;
+}
+
+interface CouponDetail {
+  "self": CouponDetail;
+  "fx:store": Store;
+  "fx:item": Item;
+  "fx:coupon": Coupon;
+  "fx:coupon_code": CouponCode;
+  "fx:transaction": Transaction;
+}
+
 interface Item {
   "self": Item;
   "fx:store": Store;
   "fx:cart": Cart;
   "fx:item_category": ItemCategory;
   "fx:item_options": IndexedCollection<ItemOption>;
-  "shipment": Shipment;
+  "fx:shipment": Shipment;
+  "fx:discount_details": IndexedCollection<DiscountDetail>;
+  "fx:coupon_details": IndexedCollection<CouponDetail>;
 }
 
 interface Tax {
@@ -207,6 +225,8 @@ interface Cart {
   "fx:customer": IndexedCollection<Customer>;
   "fx:subscription": Subscription;
   "fx:items": IndexedCollection<Item>;
+  "fx:discounts": IndexedCollection<Discount>;
+  "fx:custom_fields": IndexedCollection<CustomField>;
 }
 
 interface StoreAttribute {
@@ -343,6 +363,7 @@ interface Subscription {
   "fx:attributes": IndexedCollection<SubscriptionAttribute>;
   "fx:store": Store;
   "fx:customer": Customer;
+  "fx:transactions": IndexedCollection<Transaction>;
   "fx:original_transaction": Transaction;
   "fx:last_transaction": Transaction;
   "fx:transaction_template": Cart;

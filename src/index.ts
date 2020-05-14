@@ -3,8 +3,8 @@ import { FOXY_API_URL } from "./env";
 import { Follower } from "./follower";
 import { Sender, SendRawInit } from "./sender";
 import { ApiGraph, Followable } from "./types/utils";
-import { Graph } from "./types/graph";
-import { Props } from "./types/props";
+import { Graph } from "./types/api/graph";
+import { Props } from "./types/api/props";
 import * as cache from "./utils/cache";
 import * as sanitize from "./utils/sanitize";
 import * as sso from "./utils/sso";
@@ -91,10 +91,10 @@ class Api extends Auth {
    *
    * @param init fetch-like request initializer supporting url, method and body params
    */
-  fetchRaw<Host extends keyof Props = any>(init: SendRawInit<Host>) {
-    return new Sender<Host>(this, [], this.endpoint).fetchRaw(init);
+  fetchRaw<Host extends keyof Props = any, Graph extends ApiGraph = any>(init: SendRawInit<Host>) {
+    return new Sender<Graph, Host>(this, [], this.endpoint).fetchRaw(init);
   }
 }
 
 export { Api as FoxyApi };
-export { Graph as FoxyApiGraph } from "./types/graph";
+export { Graph as FoxyApiGraph } from "./types/api/graph";
