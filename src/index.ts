@@ -2,9 +2,10 @@ import { Auth } from "./auth";
 import { FOXY_API_URL } from "./env";
 import { Follower } from "./follower";
 import { Sender, SendRawInit } from "./sender";
-import { ApiGraph, Followable } from "./types/utils";
+import { ApiGraph, Followable, Signer } from "./types/utils";
 import { Graph } from "./types/api/graph";
 import { Props } from "./types/api/props";
+import { FoxySigner } from "./signer";
 import * as cache from "./utils/cache";
 import * as sanitize from "./utils/sanitize";
 import * as sso from "./utils/sso";
@@ -40,6 +41,9 @@ class Api extends Auth {
 
   /** A set of utilities for using our {@link https://docs.foxycart.com/v/2.0/sso sso} functionality with your website. */
   static readonly sso = sso;
+
+  /** A set of utilities for signing, i.e. creating HMAC verification codes*/
+  hmacSign: Signer = new FoxySigner(this.clientSecret);
 
   /**
    * Makes JSON response object followable.

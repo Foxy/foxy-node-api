@@ -247,3 +247,13 @@ export type Order<Curie> =
       | Partial<Record<ArrayItem<Fields<Curie>>, "asc" | "desc">>
     )[]
   | Partial<Record<ArrayItem<Fields<Curie>>, "asc" | "desc">>;
+
+/**
+ * An object that signs
+ * a set of links to other resources (relations).
+ */
+export interface Signer {
+  message(message: string): string;
+  product(product: string): string;
+  page(page: string): string;
+}
