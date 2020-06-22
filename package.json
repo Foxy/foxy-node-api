@@ -37,6 +37,7 @@
     "@babel/preset-env": "^7.9.0",
     "@babel/preset-typescript": "^7.9.0",
     "@types/clone": "^0.1.30",
+    "@types/crypto-js": "^3.1.47",
     "@types/jest": "^25.1.4",
     "@types/mock-fs": "^4.10.0",
     "@types/node-fetch": "^2.5.5",
