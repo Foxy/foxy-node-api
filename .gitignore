@@ -7,3 +7,13 @@ src/playground.ts
 .coverage
 .vscode
 .DS_Store
+
+# Vim files
+*.un~
+*.*.swp
+
+# Tag files
+tags
+GPATH
+GRTAGS
+GTAGS
