@@ -254,6 +254,8 @@ export type Order<Curie> =
  */
 export interface Signer {
   message(message: string): string;
+  queryArg(name: string, code: string, value?: string): string;
+  inputName(name: string, code: string, value?: string): string;
   product(product: string): string;
   page(page: string): string;
 }
