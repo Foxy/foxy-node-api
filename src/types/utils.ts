@@ -253,9 +253,20 @@ export type Order<Curie> =
  * a set of links to other resources (relations).
  */
 export interface Signer {
+  setSecret(secret: string): Signer;
   message(message: string): string;
+  product(code: string, name: string, value?: string | number): string;
+  inputName(name: string, code: string, parentCode: string, value?: string): string;
   queryArg(name: string, code: string, value?: string): string;
-  inputName(name: string, code: string, value?: string): string;
-  product(product: string): string;
-  page(page: string): string;
+  input(el: HTMLInputElement, codes: CodesDict): HTMLInputElement;
+  textArea(el: HTMLTextAreaElement, codes: CodesDict): HTMLTextAreaElement;
+  select(el: HTMLSelectElement, codes: CodesDict): HTMLSelectElement;
+  page(page: Document): string;
 }
+
+export type CodesDict = {
+  [key: number]: {
+    code: string;
+    parent: string;
+  };
+};

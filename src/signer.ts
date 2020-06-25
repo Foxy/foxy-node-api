@@ -1,19 +1,12 @@
 import * as crypto from "crypto";
-import { Signer } from "./types/utils";
-import { jsdom } from "jsdom";
+import { Signer, CodesDict } from "./types/utils";
+import { JSDOM } from "jsdom";
 
 type codeObject = {
   name: string;
   prefix: string;
   codeString: string;
   value: string | number | null;
-};
-
-type CodesDict = {
-  [key: number]: {
-    code: string;
-    parent: string;
-  };
 };
 
 export class FoxySigner implements Signer {
