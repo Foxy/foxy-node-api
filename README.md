@@ -155,6 +155,85 @@ await store.fetch({
 await store.fetch({ method: "DELETE" });
 ```
 
+## HMAC Validation
+
+The HMAC validation is one of the methods you can use to secure your e-commerce website against tampering.
+
+Please, refer to [HMAC Product Verification: Locking Down your Add-To-Cart Links and Forms](https://wiki.foxycart.com/v/2.0/hmac_validation)
+
+### Providing your secret
+
+### Signing 
+
+There are three basic methods you can use to sign secure your application with HMAC Validation. You may sign your whole HTML file, particular URL links or individual form elements.
+
+Please, notice that **HMAC VALIDATION IS ALL OR NOTHING**.  Signing individual name/value elements is only useful if you do sign all fields individually. 
+
+#### Sign HTML
+
+The simplest method is to sign a full HTML page. 
+
+This option imposes a performance hit if you are building your pages in runtime.
+
+```js
+const foxy = new FoxyApi();
+foxy.hmacSign.setSecret("MySuperSecretKey");
+const signedHTML = foxy.hmacSign.htmlString(myHTMLcode);
+```
+
+You may also sign static HTML files.
+
+```js
+const foxy = new FoxyApi();
+foxy.hmacSign.setSecret("MySuperSecretKey");
+const signedHTML = foxy.hmacSign.htmlFile(pathToInputFile, pathToOutputFile);
+```
+
+#### Sign a URL
+
+When simple links it is simpler and more efficient to sign the query string.
+
+Please, notice that the URL query must contain the product
+code.
+
+Here is an example URL: `https://yourdomain.foxycart.com/cart?name=Flute%20Warm-Up%20Book&code=warmups&price=1.99`
+
+Notice the **`code=warmups`** argument? If that argument is
+not present, the query will not be signed.
+
+
+```js
+const foxy = new FoxyApi();
+foxy.hmacSign.setSecret("MySuperSecretKey");
+const signedURL = hmacSign.queryString(unsigedURL);
+```
+The `signedURL` variable should be used as the link `href`.
+
+
+
+#### Sign individual name/value elements
+
+Signing individual name/value elements is a more advanced
+topics.  It will allow you to provide purchases of several products
+with a single click and to specify complex products.
+
+You must, however, be sure to sign all the fields properly.
+
+Please, **[refer to the documentation](https://wiki.foxycart.com/v/2.0/hmac_validation#the_howimplementation_details)** on how to use your signed values.
+
+Here is how you obtain a signed name/value to use in your
+element.
+
+```js
+const foxy = new FoxyApi();
+foxy.hmacSign.setSecret("MySuperSecretKey");
+const signedName = hmacSign.name(unsignedName, code,
+parentCode, value);
+```
+
+Please, be careful to use the signed value in the name or value attribute as described in the documentation.
+
+
 ## Development
 
 To get started, clone this repo locally and install the dependencies:
@@ -176,3 +255,4 @@ Committing changes with [commitizen](https://github.com/commitizen/cz-cli):
 ```bash
 git commit # precommit hooks will lint the staged files and help you format your message correctly
 ```
+
