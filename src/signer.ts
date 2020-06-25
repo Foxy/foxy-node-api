@@ -20,10 +20,17 @@ export class FoxySigner implements Signer {
 
   public setSecret(secret: string): Signer {
     this.secret = secret;
-    return this;
+    return this as Signer;
   }
 
   public message(message: string): string {
+    /** Signs a simple message
+     * This function can only be invoked after the secret has
+     * been defined.
+     * The secret can be defined either in the construction
+     * method as in `new FoxySigner(mySecret)` or by invoking
+     * the setSecret method, as in signer.setSecret(mySecret);
+     */
     if (this.secret === undefined) {
       throw new Error("No secret was provided to build the hmac");
     }
@@ -32,21 +39,25 @@ export class FoxySigner implements Signer {
     return hmac.digest("hex");
   }
 
-  public signProduct(code: string, name: string, value?: string | number): string {
+  /** Signs a product composed of code, name and value */
+  public product(code: string, name: string, value?: string | number): string {
     return this.message(code + name + this.valueOrOpen(value));
   }
 
   public inputName(name: string, code: string, parentCode = "", value?: string | number): string {
-    name = name.replace(" ", "_");
-    const signature = this.signProduct(code + parentCode, name, value);
+    /** Signs an input name to be used in an input form field */
+    name = name.replace(/ /g, "_");
+    const signature = this.product(code + parentCode, name, value);
     const encodedName = encodeURIComponent(name);
     const nameAttr = this.buildSignedName(encodedName, signature, value);
     return nameAttr;
   }
 
   public queryArg(name: string, code: string, value?: string): string {
-    name = name.replace(" ", "_");
-    const signature = this.signProduct(code, name, value);
+    /** Signs a sigle query argument to be used in qet * requests */
+    name = name.replace(/ /g, "_");
+    code = code.replace(/ /g, "_");
+    const signature = this.product(code, name, value);
     const encodedName = encodeURIComponent(name).replace(/%20/g, "+");
     const encodedValue = encodeURIComponent(this.valueOrOpen(value)).replace(/%20/g, "+");
     const nameAttr = this.buildSignedQueryArg(encodedName, signature, encodedValue);
@@ -54,25 +65,44 @@ export class FoxySigner implements Signer {
   }
 
   public queryString(query: string): string {
-    return "result";
-    //// If it's already signed, skip it.
-    //if (strpos($querystring, '||')) {
-    //    continue;
-    //}
-    //$pattern = '%(href=([\'"]))'.preg_quote(self::$cart_url, '%').'(?:\.php)?\?'.preg_quote($querystring, '%').'\2%i';
-    //$signed = self::fc_hash_querystring($querystring, FALSE);
-    //$html = preg_replace($pattern, '$1'.$signed.'$2', $html, -1, $count['temp']);
-    //$count['links'] += $count['temp'];
+    /** Signs a query string
+     * All query fields withing the query string will be
+     * signed.
+     */
+    // Build a URL object
+    const url = new URL(query);
+    const stripped = new URL(url.origin);
+    const original_params = url.searchParams;
+    const new_params = stripped.searchParams;
+    const code = this.getCodeFromURL(query);
+    // If there is no code, return the same URL
+    if (!code) {
+      return query;
+    }
+    // sign the url object
+    for (const p of original_params.entries()) {
+      const signed = this.queryArg(
+        decodeURIComponent(p[0]),
+        decodeURIComponent(code),
+        decodeURIComponent(p[1])
+      ).split("=");
+      new_params.set(signed[0], signed[1]);
+    }
+    url.search = new_params.toString();
+    return this.replaceURLchars(url.toString());
   }
 
   public link(link: HTMLAnchorElement): HTMLAnchorElement {
+    /** Signs an anchor element
+     * Uses queryString to sign the href attribute of a link element.
+     */
     link.href = this.queryString(link.href);
     return link;
   }
 
   public input(el: HTMLInputElement, codes: CodesDict): HTMLInputElement {
-    // TODO: Review the consequences for Inputs of types
-    // radio and checkbox
+    /** Signs an input element */
+    // TODO: Review the consequences for Inputs of types radio and checkbox
     const splitted = this.splitNamePrefix(el.name);
     const nameString = splitted[1];
     const prefix = splitted[0];
@@ -85,8 +115,7 @@ export class FoxySigner implements Signer {
   }
 
   public textArea(el: HTMLTextAreaElement, codes: CodesDict): HTMLTextAreaElement {
-    // TODO: Review the consequences for Inputs of types
-    // radio and checkbox
+    /** Signs a texArea element */
     const splitted = this.splitNamePrefix(el.name);
     const nameString = splitted[1];
     const prefix = splitted[0];
@@ -99,6 +128,7 @@ export class FoxySigner implements Signer {
   }
 
   public select(el: HTMLSelectElement, codes: CodesDict): HTMLSelectElement {
+    /** Signs all option elements within a Select element */
     el.querySelectorAll("option").forEach((opt) => {
       const splitted = this.splitNamePrefix(el.name);
       const nameString = splitted[1];
@@ -113,6 +143,9 @@ export class FoxySigner implements Signer {
   }
 
   private splitNamePrefix(name: string): [number, string] {
+    /** Splits a string using the prefix pattern for foxy store
+     * The prefix pattern allows for including more than a single product in a given GET or POST request
+     */
     const splitted = name.split(":");
     if (splitted.length == 2) {
       return [parseInt(splitted[0], 10), splitted[1]];
@@ -140,6 +173,7 @@ export class FoxySigner implements Signer {
   }
 
   public form(formElement: Element) {
+    /** Signs a whole form element */
     const products = {};
     //  // Check for the "code" input, set the matches in $codes
     //  if (!preg_match_all('%<[^>]*?name=([\'"])([0-9]{1,3}:)?code\1[^>]*?>%i', $form, $codes, PREG_SET_ORDER)) {
@@ -151,10 +185,8 @@ export class FoxySigner implements Signer {
       // If there is no code field, it shouldn't be signed
       return;
     }
-
     // Simple list of integer codes
     const codes: any = {};
-
     for (const node of codeList) {
       const nameAttr = (node as Element).getAttribute("name");
       if (nameAttr && nameAttr.match(/^([0-9]{1,3}:)?code/)) {
@@ -192,10 +224,6 @@ export class FoxySigner implements Signer {
     const textAreas = formElement
       .querySelectorAll("textarea[name]")
       .forEach((s) => this.textArea(s as HTMLTextAreaElement, codes));
-  }
-
-  public product(message: string): string {
-    return message;
   }
 
   public url(href: URL) {
@@ -250,20 +278,76 @@ export class FoxySigner implements Signer {
   }
 
   private buildSignedName(name: string, signature: string, value?: string | number) {
+    /** Builds a signed name given it components.
+     * This method does not sign. */
     let open = this.valueOrOpen(value);
-    open = this.valueOrOpen(value) == "--OPEN--" ? open : "";
+    open = this.valueOrOpen(value) == "--OPEN--" ? "||open" : "";
     return `${name}||${signature}${open}`;
   }
 
   private buildSignedQueryArg(name: string, signature: string, value?: string | number) {
+    /** Builds a signed query argument given its components.
+     * This method does not sign. */
     const open = value ? "" : "||open";
     return `${name}||${signature}${open}=${value}`;
   }
 
   private valueOrOpen(value: string | number | undefined): string | number {
+    /** Retuns the value of a field on the --OPEN-- string if
+     * the value is not defined. Please, notice that 0 is
+     * treated as a acceptable value. */
     if (value === undefined || value === null || value === "") {
       return "--OPEN--";
     }
     return value;
+  }
+
+  /** Check if a href string is already signed signed
+   * strings contains two consecutive pipes followed by 64
+   * hexadecimal characters */
+  private isSigned(a: HTMLAnchorElement): boolean {
+    return a.href.match(/^.*\|\|[0-9a-fA-F]{64}/) != null;
+  }
+
+  /** Returns the code from a HTMLAnchorElement or null if
+   * it does not contain a code */
+  private getCodeFromURL(url: string): string | undefined {
+    for (const p of new URL(url).searchParams) {
+      if (p[0] == "code") {
+        return p[1];
+      }
+    }
+  }
+
+  /** Find all cart links in a document fragment that
+   * contain a query parameter 'code' */
+  private findCartLinks(doc: DocumentFragment) {
+    return Array.from(doc.querySelectorAll("a")).filter((e) => this.getCodeFromURL(e.href));
+  }
+
+  /** Replace some of the characters encoded by * encodeURIComponent */
+  private replaceURLchars(urlStr: string): string {
+    return urlStr.replace(/%7C/g, "|").replace(/%3D/g, "=").replace(/%2B/g, "+");
+  }
+
+  public findLinks(doc: DocumentFragment) {
+    return doc.querySelectorAll("a");
+  }
+
+  public fragment(doc: DocumentFragment): DocumentFragment {
+    const links = doc.querySelectorAll("a");
+    for (const l of links) {
+      l.href = this.queryString(l.href);
+    }
+    const forms = doc.querySelectorAll("forms");
+    console.log("Links found", links.length);
+    console.log("Forms found", forms.length);
+    return doc;
+  }
+
+  public htmlString(htmlStr: string) {
+    const document = JSDOM.fragment(htmlStr);
+    const signed = this.fragment(document);
+    return signed.toString();
   }
 }
