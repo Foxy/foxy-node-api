@@ -259,6 +259,7 @@ export interface Signer {
   value(name: string, code: string, parentCode: string, value?: string): string;
   queryString(query: string): string;
   htmlString(strHtml: string): string;
+  htmlFile(inputPath: string, outputPath: string): Promise<any>;
 }
 
 export type CodesDict = {

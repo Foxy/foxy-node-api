@@ -122,4 +122,28 @@ describe("Signer", () => {
       expect(signedItems.length).toBe(p[2]);
     }
   });
+
+  it("Signs an HTML file", async () => {
+    const inputPath = "./test/mocks/html/onepagewithforms.html";
+    const outputPath = "/tmp/foxyTestOutput.html";
+    await foxy.hmacSign.htmlFile(inputPath, outputPath);
+    const result = fs.readFileSync(outputPath).toString();
+    const namePrefixRegex = /name="\d{1,3}:/;
+    const valuePrefixRegex = /value="\d{1,3}:/;
+    const signatureRegex = /\|\|[0-9a-fA-F]{64}\W/;
+    const expectedAttributeMatches: [RegExp, RegExp, number][] = [
+      [namePrefixRegex, /name/, 3],
+      [namePrefixRegex, /price/, 3],
+      [namePrefixRegex, /code/, 3],
+      [valuePrefixRegex, /small\{p-2\}/, 3],
+      [valuePrefixRegex, /medium/, 3],
+      [valuePrefixRegex, /large\{p\+3\}/, 3],
+      [namePrefixRegex, /quantity/, 3],
+    ];
+    for (const p of expectedAttributeMatches) {
+      const toMatch = new RegExp(p[0].source + p[1].source + signatureRegex.source, "g");
+      const signedItems = result.match(toMatch);
+      expect(signedItems.length).toBe(p[2]);
+    }
+  });
 });

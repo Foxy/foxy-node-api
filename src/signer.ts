@@ -1,6 +1,7 @@
 import * as crypto from "crypto";
 import { Signer, CodesDict } from "./types/utils";
 import { JSDOM } from "jsdom";
+import * as fs from "fs";
 
 type codeObject = {
   name: string;
@@ -29,6 +30,19 @@ export class FoxySigner implements Signer {
     const dom = new JSDOM(htmlStr);
     const signed = this.fragment(dom.window.document);
     return dom.serialize();
+  }
+
+  public htmlFile(inputPath: string, outputPath: string) {
+    /** Signs a file asynchronously */
+    return new Promise((resolve, reject) => {
+      JSDOM.fromFile(inputPath).then((dom) => {
+        const signed = this.fragment(dom.window.document);
+        fs.writeFile(outputPath, dom.serialize(), (err) => {
+          if (err) reject(err);
+          else resolve(signed);
+        });
+      });
+    });
   }
 
   public product(code: string, name: string, value?: string | number): string {
