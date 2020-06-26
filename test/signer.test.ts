@@ -1,4 +1,5 @@
 import * as crypto from "crypto";
+import * as fs from "fs";
 import { JSDOM } from "jsdom";
 import { FoxyApi } from "../src";
 import { auth as MockAuth } from "./mocks/settings";
@@ -44,7 +45,7 @@ describe("Signer", () => {
   it("Signs an input name with user edited values", () => {
     const code = "ABC123";
     const name = "name";
-    expect(foxy.hmacSign.inputName(name, code)).toBe(
+    expect(foxy.hmacSign.inputName(name, code, "")).toBe(
       "name||3f2075135e3455131bd0d6ce8643551e9e2e43bc09dd0474fa3effbe4e588c9e||open"
     );
   });
@@ -86,35 +87,41 @@ describe("Signer", () => {
     expect(foxy.hmacSign.queryString(fullURL)).toBe(signedURL);
   });
 
-  //it("Signs a whole Form", () => {
-  //  const formHTML = `
-  //  <form action="https://your-actual-store-domain.foxycart.com/cart" method="post" accept-charset="utf-8" class="foxycart">
-  //    <input type="hidden" name="name" value="Example T-Shirt" />
-  //  <input type="hidden" name="code" value="abc123" />
-  //  <input type="hidden" name="price" value="25" />
-  //  <select name="size">
-  //  <option value="small{p-2}">Small</option>
-  //  <option value="medium">Medium</option>
-  //  <option value="large{p+3}">Large</option>
-  //  </select>
-  //  <label>Qty: <input type="text" name="quantity" value="" /></label>
-  //  <p><input type="submit" value="Buy It!"></p>
-  //  </form>
-  //  `;
-  //  const signedFormHTML = `
-  //  <form action="https://your-actual-store-domain.foxycart.com/cart" method="post" accept-charset="utf-8" class="foxycart">
-  //    <input type="hidden" name="name||f8d3b7b993380dee31ee467984397ed8dc5feec3eb464bc55264cbe33fd691ac" value="Example T-Shirt" />
-  //  <input type="hidden" name="code||8211b9acfbe1ae395dc32bf5ccfa20ab50382d48a65fa3586803288aacbe9ca4" value="abc123" />
-  //  <input type="hidden" name="price||f842ce83aff26e640c1958c3f6f9cba033fbe2a9e53c91b92004d32ee185457c" value="25" />
-  //  <select name="size">
-  //  <option value="small{p-2}||14696b9ff099727a798a5b59d71bc1540a5481adfd957ed2252acf8aec83914a">Small</option>
-  //  <option value="medium||713800d729f987d4609a8b83b60932e64f64690b4c2842b7d6522a62fe514af4">Medium</option>
-  //  <option value="large{p+3}||c8d37d7c32c3c4fc9fe9703e8cc3456020aa9319dd18816d7f887c6f9c616708">Large</option>
-  //  </select>
-  //  <label>Qty: <input type="text" name="quantity||753d51d4675bfb6f0aec5e6fbfd8a2e32cbea620c15a181567b052d350469c50||open" value="" /></label>
-  //  <p><input type="submit" value="Buy It!"></p>
-  //  `;
-  //  expect(foxy.hmacSign.htmlString(formHTML)).toBe("falso");
+  it("Signs a whole HTML string", () => {
+    const htmlString = fs.readFileSync("./test/mocks/html/onepage.html").toString();
+    const signedHTML = foxy.hmacSign.htmlString(htmlString);
+    // e.g: ||aed2692b1b278b04b974c3c9822e597dc5da880561cf256ab20b2873a5346b66=
+    const signatureRegex = /\|\|[0-9a-fA-F]{64}=/;
+    const expectedAttributeMatches = [/name/, /price/, /quantity/];
+    for (const p of expectedAttributeMatches) {
+      const toMatch = new RegExp(p.source + signatureRegex.source, "g");
+      const signedItems = signedHTML.match(toMatch);
+      expect(signedItems.length).toBe(31);
+    }
+  });
 
-  //});
+  it("Signs a whole Form", () => {
+    const htmlString = fs.readFileSync("./test/mocks/html/onepagewithforms.html").toString();
+    const signedHTML = foxy.hmacSign.htmlString(htmlString);
+    console.debug(signedHTML);
+    // e.g: ||aed2692b1b278b04b974c3c9822e597dc5da880561cf256ab20b2873a5346b66=
+    const namePrefixRegex = /name="\d{1,3}:/;
+    const valuePrefixRegex = /value="\d{1,3}:/;
+    const signatureRegex = /\|\|[0-9a-fA-F]{64}\W/;
+    const expectedAttributeMatches: [RegExp, RegExp, number][] = [
+      [namePrefixRegex, /name/, 3],
+      [namePrefixRegex, /price/, 3],
+      [namePrefixRegex, /code/, 3],
+      [valuePrefixRegex, /small\{p-2\}/, 3],
+      [valuePrefixRegex, /medium/, 3],
+      [valuePrefixRegex, /large\{p\+3\}/, 3],
+      [namePrefixRegex, /quantity/, 3],
+    ];
+    for (const p of expectedAttributeMatches) {
+      const toMatch = new RegExp(p[0].source + p[1].source + signatureRegex.source, "g");
+      console.debug(toMatch);
+      const signedItems = signedHTML.match(toMatch);
+      expect(signedItems.length).toBe(p[2]);
+    }
+  });
 });

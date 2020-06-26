@@ -53,6 +53,14 @@ export class FoxySigner implements Signer {
     return nameAttr;
   }
 
+  public value(name: string, code: string, parentCode = "", value?: string | number): string {
+    /** Signs an input name to be used in an input form field */
+    name = name.replace(/ /g, "_");
+    const signature = this.product(code + parentCode, name, value);
+    const valueAttr = this.buildSignedValue(signature, value);
+    return valueAttr;
+  }
+
   public queryArg(name: string, code: string, value?: string): string {
     /** Signs a sigle query argument to be used in qet * requests */
     name = name.replace(/ /g, "_");
@@ -64,11 +72,11 @@ export class FoxySigner implements Signer {
     return nameAttr;
   }
 
+  /** Signs a query string
+   * All query fields withing the query string will be
+   * signed.
+   */
   public queryString(query: string): string {
-    /** Signs a query string
-     * All query fields withing the query string will be
-     * signed.
-     */
     // Build a URL object
     const url = new URL(query);
     const stripped = new URL(url.origin);
@@ -100,7 +108,7 @@ export class FoxySigner implements Signer {
     return link;
   }
 
-  public input(el: HTMLInputElement, codes: CodesDict): HTMLInputElement {
+  private input(el: HTMLInputElement, codes: CodesDict): HTMLInputElement {
     /** Signs an input element */
     // TODO: Review the consequences for Inputs of types radio and checkbox
     const splitted = this.splitNamePrefix(el.name);
@@ -114,7 +122,7 @@ export class FoxySigner implements Signer {
     return el;
   }
 
-  public textArea(el: HTMLTextAreaElement, codes: CodesDict): HTMLTextAreaElement {
+  private textArea(el: HTMLTextAreaElement, codes: CodesDict): HTMLTextAreaElement {
     /** Signs a texArea element */
     const splitted = this.splitNamePrefix(el.name);
     const nameString = splitted[1];
@@ -127,19 +135,40 @@ export class FoxySigner implements Signer {
     return el;
   }
 
-  public select(el: HTMLSelectElement, codes: CodesDict): HTMLSelectElement {
+  private select(el: HTMLSelectElement, codes: CodesDict): HTMLSelectElement {
     /** Signs all option elements within a Select element */
     el.querySelectorAll("option").forEach((opt) => {
-      const splitted = this.splitNamePrefix(el.name);
-      const nameString = splitted[1];
-      const prefix = splitted[0];
-      const code = codes[prefix].code;
-      const parentCode = codes[prefix].parent;
-      const value = opt.value;
-      const signedName = this.inputName(nameString, code, parentCode, value);
-      opt.setAttribute("value", prefix + ":" + signedName);
+      this.option(opt, codes);
     });
     return el;
+  }
+
+  /** Sign an option element
+   * Signatures are added to the value attribute on options
+   * This function may also be used to sign radio buttons
+   */
+  private option(
+    el: HTMLOptionElement | HTMLInputElement,
+    codes: CodesDict
+  ): HTMLOptionElement | HTMLInputElement {
+    let n = (el as any).name;
+    if (n === undefined) {
+      const p = el.parentElement as HTMLSelectElement;
+      n = p.name;
+    }
+    const splitted = this.splitNamePrefix(n);
+    const nameString = splitted[1];
+    const prefix = splitted[0];
+    const code = codes[prefix].code;
+    const parentCode = codes[prefix].parent;
+    const value = el.value;
+    const signedValue = this.value(nameString, code, parentCode, value);
+    el.setAttribute("value", prefix + ":" + signedValue);
+    return el;
+  }
+
+  private radio(el: HTMLInputElement, codes: CodesDict): HTMLInputElement {
+    return this.option(el, codes) as HTMLInputElement;
   }
 
   private splitNamePrefix(name: string): [number, string] {
@@ -155,7 +184,7 @@ export class FoxySigner implements Signer {
 
   /** Retrieve a parent code value from a form, given a
    * prefix */
-  private retriveParentCode(formElement: Element, prefix: string | number = ""): string {
+  private retrieveParentCode(formElement: Element, prefix: string | number = ""): string {
     // A blank string indicates no parent
     let result = "";
     let separator = "";
@@ -172,7 +201,7 @@ export class FoxySigner implements Signer {
     return result;
   }
 
-  public form(formElement: Element) {
+  private form(formElement: Element) {
     /** Signs a whole form element */
     const products = {};
     //  // Check for the "code" input, set the matches in $codes
@@ -196,13 +225,13 @@ export class FoxySigner implements Signer {
           // Store prefix in codes list
           codes[prefix] = {
             code: splitted[1],
-            parent: this.retriveParentCode(formElement, prefix),
+            parent: this.retrieveParentCode(formElement, prefix),
           };
-        } else if (codes.length == 0) {
+        } else if (codes[0] === undefined) {
           // Allow to push a single code without prefix
           codes[0] = {
             code: nameAttr,
-            parent: this.retriveParentCode(formElement),
+            parent: this.retrieveParentCode(formElement),
           };
         } else {
           const documentationURL =
@@ -218,9 +247,12 @@ export class FoxySigner implements Signer {
       .querySelectorAll("input[name]")
       .forEach((i) => this.input(i as HTMLInputElement, codes));
 
+    // Sign selects
     const selects = formElement
       .querySelectorAll("select[name]")
       .forEach((s) => this.select(s as HTMLSelectElement, codes));
+
+    // Sign textAreas
     const textAreas = formElement
       .querySelectorAll("textarea[name]")
       .forEach((s) => this.textArea(s as HTMLTextAreaElement, codes));
@@ -285,6 +317,14 @@ export class FoxySigner implements Signer {
     return `${name}||${signature}${open}`;
   }
 
+  private buildSignedValue(signature: string, value?: string | number) {
+    /** Builds a signed name given it components.
+     * This method does not sign. */
+    let open = this.valueOrOpen(value);
+    open = this.valueOrOpen(value) == "--OPEN--" ? "||open" : (value as string);
+    return `${open}||${signature}`;
+  }
+
   private buildSignedQueryArg(name: string, signature: string, value?: string | number) {
     /** Builds a signed query argument given its components.
      * This method does not sign. */
@@ -325,6 +365,12 @@ export class FoxySigner implements Signer {
     return Array.from(doc.querySelectorAll("a")).filter((e) => this.getCodeFromURL(e.href));
   }
 
+  /** Find all cart forms in a document fragment that
+   * contain an input named code */
+  private findCartForms(doc: DocumentFragment) {
+    return Array.from(doc.querySelectorAll("form")).filter((e) => e.querySelector("[name=code]"));
+  }
+
   /** Replace some of the characters encoded by * encodeURIComponent */
   private replaceURLchars(urlStr: string): string {
     return urlStr.replace(/%7C/g, "|").replace(/%3D/g, "=").replace(/%2B/g, "+");
@@ -337,17 +383,25 @@ export class FoxySigner implements Signer {
   public fragment(doc: DocumentFragment): DocumentFragment {
     const links = doc.querySelectorAll("a");
     for (const l of links) {
-      l.href = this.queryString(l.href);
+      try {
+        l.href = this.queryString(l.href);
+      } catch (e) {
+        // Disregard error if href is not a URL
+        if (e.code !== "ERR_INVALID_URL") {
+          throw e;
+        }
+      }
     }
-    const forms = doc.querySelectorAll("forms");
+    const forms = this.findCartForms(doc);
+    forms.forEach(this.form.bind(this));
     console.log("Links found", links.length);
     console.log("Forms found", forms.length);
     return doc;
   }
 
   public htmlString(htmlStr: string) {
-    const document = JSDOM.fragment(htmlStr);
-    const signed = this.fragment(document);
-    return signed.toString();
+    const dom = new JSDOM(htmlStr);
+    const signed = this.fragment(dom.window.document);
+    return dom.serialize();
   }
 }
