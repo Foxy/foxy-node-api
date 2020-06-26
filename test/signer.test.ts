@@ -150,8 +150,11 @@ describe("Signer", () => {
   it("Signs fields with editable values", async () => {
     // Reuse previously generated signed html
     const result = fs.readFileSync(outputPath).toString();
-    const editable = /name="\d{1,3}:color\|\|[0-9a-fA-F]{64}||open\W/;
-    const signedItems = result.match(editable);
+    const colorEditable = /name="\d{1,3}:color\|\|[0-9a-fA-F]{64}||open\W/;
+    const additionalDetails = /name="\d{1,3}:additional-details\|\|[0-9a-fA-F]{64}||open\W/;
+    let signedItems = result.match(colorEditable);
+    expect(signedItems.length).toBe(1);
+    signedItems = result.match(additionalDetails);
     expect(signedItems.length).toBe(1);
   });
 });
