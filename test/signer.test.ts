@@ -26,6 +26,7 @@ describe("Signer", () => {
   <a href="http://example.com">This is a common example</a>
     </section>
   `;
+  const outputPath = "/tmp/foxyTestOutput.html";
 
   it("Signs a message", () => {
     expect(foxy.hmacSign.message("My secret message")).toBe(
@@ -125,7 +126,6 @@ describe("Signer", () => {
 
   it("Signs an HTML file", async () => {
     const inputPath = "./test/mocks/html/onepagewithforms.html";
-    const outputPath = "/tmp/foxyTestOutput.html";
     await foxy.hmacSign.htmlFile(inputPath, outputPath);
     const result = fs.readFileSync(outputPath).toString();
     const namePrefixRegex = /name="\d{1,3}:/;
@@ -145,5 +145,13 @@ describe("Signer", () => {
       const signedItems = result.match(toMatch);
       expect(signedItems.length).toBe(p[2]);
     }
+  });
+
+  it("Signs fields with editable values", async () => {
+    // Reuse previously generated signed html
+    const result = fs.readFileSync(outputPath).toString();
+    const editable = /name="\d{1,3}:color\|\|[0-9a-fA-F]{64}||open\W/;
+    const signedItems = result.match(editable);
+    expect(signedItems.length).toBe(1);
   });
 });
