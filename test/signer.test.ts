@@ -84,7 +84,7 @@ describe("Signer", () => {
       "name||07f23df6159ba32f01de36db07bf998d7661bda812a7c0d597cfacdefe0f0064=testname&" +
       "price||aed2692b1b278b04b974c3c9822e597dc5da880561cf256ab20b2873a5346b66=123.00&" +
       "other_atribute||98700cf679c5d7394e3e33b883f18683664b4843707f916a0739ba1c9adeabab=Some+Other+Thing";
-    expect(foxy.hmacSign.queryString(fullURL)).toBe(signedURL);
+    expect(foxy.hmacSign.url(fullURL)).toBe(signedURL);
   });
 
   it("Signs a whole HTML string", () => {

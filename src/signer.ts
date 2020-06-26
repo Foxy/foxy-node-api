@@ -67,7 +67,7 @@ export class FoxySigner implements Signer {
     return valueAttr;
   }
 
-  public queryString(query: string): string {
+  public url(query: string): string {
     /** Signs a query string
      * All query fields withing the query string will be signed. */
     // Build a URL object
@@ -104,17 +104,8 @@ export class FoxySigner implements Signer {
     return nameAttr;
   }
 
-  private link(link: HTMLAnchorElement): HTMLAnchorElement {
-    /** Signs an anchor element
-     * Uses queryString to sign the href attribute of a link element.
-     */
-    link.href = this.queryString(link.href);
-    return link;
-  }
-
   private input(el: HTMLInputElement, codes: CodesDict): HTMLInputElement {
     /** Signs an input element */
-    // TODO: Review the consequences for Inputs of types radio and checkbox
     const splitted = this.splitNamePrefix(el.name);
     const nameString = splitted[1];
     const prefix = splitted[0];
@@ -263,21 +254,6 @@ export class FoxySigner implements Signer {
       .forEach((s) => this.textArea(s as HTMLTextAreaElement, codes));
   }
 
-  private url(href: URL) {
-    // Check if it is already signed
-    // Check if there is a code field
-    const old = [];
-    const codes = [];
-    const products = [];
-    for (const p of href.searchParams) {
-      old.push(p[0]);
-      if (p[0] == "code") {
-        codes.push(this.codeObject(p[0], p[1]));
-      }
-    }
-    href.searchParams.getAll;
-  }
-
   // TODO: find a propper name to this function
   // It is actually converting a pair of parameters into a
   // product field
@@ -308,7 +284,7 @@ export class FoxySigner implements Signer {
     //preg_match_all('%<a .*?href=([\'"])'.preg_quote(self::$cart_url).'(?:\.php)?\?(.+?)\1.*?>%i', $html, $querystrings);
     const links = document.querySelectorAll("a");
     for (const l of links) {
-      l.href = this.queryString(l.href);
+      l.href = this.url(l.href);
     }
     const forms = document.querySelectorAll("forms");
     return "";
@@ -389,7 +365,7 @@ export class FoxySigner implements Signer {
     const links = doc.querySelectorAll("a");
     for (const l of links) {
       try {
-        l.href = this.queryString(l.href);
+        l.href = this.url(l.href);
       } catch (e) {
         // Disregard error if href is not a URL
         if (e.code !== "ERR_INVALID_URL") {

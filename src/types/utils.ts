@@ -257,7 +257,7 @@ export interface Signer {
   product(code: string, name: string, value?: string | number): string;
   name(name: string, code: string, parentCode: string, value?: string): string;
   value(name: string, code: string, parentCode: string, value?: string): string;
-  queryString(query: string): string;
+  url(query: string): string;
   htmlString(strHtml: string): string;
   htmlFile(inputPath: string, outputPath: string): Promise<any>;
 }
