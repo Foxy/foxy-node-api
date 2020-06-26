@@ -254,15 +254,10 @@ export type Order<Curie> =
  */
 export interface Signer {
   setSecret(secret: string): Signer;
-  message(message: string): string;
   product(code: string, name: string, value?: string | number): string;
-  inputName(name: string, code: string, parentCode: string, value?: string): string;
-  queryArg(name: string, code: string, value?: string): string;
+  name(name: string, code: string, parentCode: string, value?: string): string;
+  value(name: string, code: string, parentCode: string, value?: string): string;
   queryString(query: string): string;
-  input(el: HTMLInputElement, codes: CodesDict): HTMLInputElement;
-  textArea(el: HTMLTextAreaElement, codes: CodesDict): HTMLTextAreaElement;
-  select(el: HTMLSelectElement, codes: CodesDict): HTMLSelectElement;
-  page(page: Document): string;
   htmlString(strHtml: string): string;
 }
 

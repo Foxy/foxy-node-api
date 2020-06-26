@@ -19,32 +19,24 @@ export class FoxySigner implements Signer {
   }
 
   public setSecret(secret: string): Signer {
+    /** Sets the HMAC secret
+     * It won't be possible to sign anythin without this secret */
     this.secret = secret;
     return this as Signer;
   }
 
-  public message(message: string): string {
-    /** Signs a simple message
-     * This function can only be invoked after the secret has
-     * been defined.
-     * The secret can be defined either in the construction
-     * method as in `new FoxySigner(mySecret)` or by invoking
-     * the setSecret method, as in signer.setSecret(mySecret);
-     */
-    if (this.secret === undefined) {
-      throw new Error("No secret was provided to build the hmac");
-    }
-    const hmac = crypto.createHmac("sha256", this.secret);
-    hmac.update(message);
-    return hmac.digest("hex");
+  public htmlString(htmlStr: string) {
+    const dom = new JSDOM(htmlStr);
+    const signed = this.fragment(dom.window.document);
+    return dom.serialize();
   }
 
-  /** Signs a product composed of code, name and value */
   public product(code: string, name: string, value?: string | number): string {
+    /** Signs a product composed of code, name and value */
     return this.message(code + name + this.valueOrOpen(value));
   }
 
-  public inputName(name: string, code: string, parentCode = "", value?: string | number): string {
+  public name(name: string, code: string, parentCode = "", value?: string | number): string {
     /** Signs an input name to be used in an input form field */
     name = name.replace(/ /g, "_");
     const signature = this.product(code + parentCode, name, value);
@@ -61,22 +53,9 @@ export class FoxySigner implements Signer {
     return valueAttr;
   }
 
-  public queryArg(name: string, code: string, value?: string): string {
-    /** Signs a sigle query argument to be used in qet * requests */
-    name = name.replace(/ /g, "_");
-    code = code.replace(/ /g, "_");
-    const signature = this.product(code, name, value);
-    const encodedName = encodeURIComponent(name).replace(/%20/g, "+");
-    const encodedValue = encodeURIComponent(this.valueOrOpen(value)).replace(/%20/g, "+");
-    const nameAttr = this.buildSignedQueryArg(encodedName, signature, encodedValue);
-    return nameAttr;
-  }
-
-  /** Signs a query string
-   * All query fields withing the query string will be
-   * signed.
-   */
   public queryString(query: string): string {
+    /** Signs a query string
+     * All query fields withing the query string will be signed. */
     // Build a URL object
     const url = new URL(query);
     const stripped = new URL(url.origin);
@@ -100,7 +79,18 @@ export class FoxySigner implements Signer {
     return this.replaceURLchars(url.toString());
   }
 
-  public link(link: HTMLAnchorElement): HTMLAnchorElement {
+  private queryArg(name: string, code: string, value?: string): string {
+    /** Signs a sigle query argument to be used in qet * requests */
+    name = name.replace(/ /g, "_");
+    code = code.replace(/ /g, "_");
+    const signature = this.product(code, name, value);
+    const encodedName = encodeURIComponent(name).replace(/%20/g, "+");
+    const encodedValue = encodeURIComponent(this.valueOrOpen(value)).replace(/%20/g, "+");
+    const nameAttr = this.buildSignedQueryArg(encodedName, signature, encodedValue);
+    return nameAttr;
+  }
+
+  private link(link: HTMLAnchorElement): HTMLAnchorElement {
     /** Signs an anchor element
      * Uses queryString to sign the href attribute of a link element.
      */
@@ -117,7 +107,7 @@ export class FoxySigner implements Signer {
     const code = codes[prefix].code;
     const parentCode = codes[prefix].parent;
     const value = el.value;
-    const signedName = this.inputName(nameString, code, parentCode, value);
+    const signedName = this.name(nameString, code, parentCode, value);
     el.setAttribute("name", prefix + ":" + signedName);
     return el;
   }
@@ -130,7 +120,7 @@ export class FoxySigner implements Signer {
     const code = codes[prefix].code;
     const parentCode = codes[prefix].parent;
     const value = "";
-    const signedName = this.inputName(nameString, code, parentCode, value);
+    const signedName = this.name(nameString, code, parentCode, value);
     el.setAttribute("name", prefix + ":" + signedName);
     return el;
   }
@@ -143,11 +133,11 @@ export class FoxySigner implements Signer {
     return el;
   }
 
-  /** Sign an option element
-   * Signatures are added to the value attribute on options
-   * This function may also be used to sign radio buttons
-   */
   private option(
+    /** Sign an option element
+     * Signatures are added to the value attribute on options
+     * This function may also be used to sign radio buttons
+     */
     el: HTMLOptionElement | HTMLInputElement,
     codes: CodesDict
   ): HTMLOptionElement | HTMLInputElement {
@@ -168,6 +158,7 @@ export class FoxySigner implements Signer {
   }
 
   private radio(el: HTMLInputElement, codes: CodesDict): HTMLInputElement {
+    /** Signs a radio button. Radio buttons use the value attribute to hold their signatures. */
     return this.option(el, codes) as HTMLInputElement;
   }
 
@@ -258,7 +249,7 @@ export class FoxySigner implements Signer {
       .forEach((s) => this.textArea(s as HTMLTextAreaElement, codes));
   }
 
-  public url(href: URL) {
+  private url(href: URL) {
     // Check if it is already signed
     // Check if there is a code field
     const old = [];
@@ -298,7 +289,7 @@ export class FoxySigner implements Signer {
    *
    * @return string
    **/
-  public page(document: Document): string {
+  private page(document: Document): string {
     //// Find and sign all the links
     //preg_match_all('%<a .*?href=([\'"])'.preg_quote(self::$cart_url).'(?:\.php)?\?(.+?)\1.*?>%i', $html, $querystrings);
     const links = document.querySelectorAll("a");
@@ -394,14 +385,22 @@ export class FoxySigner implements Signer {
     }
     const forms = this.findCartForms(doc);
     forms.forEach(this.form.bind(this));
-    console.log("Links found", links.length);
-    console.log("Forms found", forms.length);
     return doc;
   }
 
-  public htmlString(htmlStr: string) {
-    const dom = new JSDOM(htmlStr);
-    const signed = this.fragment(dom.window.document);
-    return dom.serialize();
+  private message(message: string): string {
+    /** Signs a simple message
+     * This function can only be invoked after the secret has
+     * been defined.
+     * The secret can be defined either in the construction
+     * method as in `new FoxySigner(mySecret)` or by invoking
+     * the setSecret method, as in signer.setSecret(mySecret);
+     */
+    if (this.secret === undefined) {
+      throw new Error("No secret was provided to build the hmac");
+    }
+    const hmac = crypto.createHmac("sha256", this.secret);
+    hmac.update(message);
+    return hmac.digest("hex");
   }
 }

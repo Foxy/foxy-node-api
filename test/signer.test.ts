@@ -37,7 +37,7 @@ describe("Signer", () => {
     const code = "ABC123";
     const name = "name";
     const value = "My Example Product";
-    expect(foxy.hmacSign.inputName(name, code, "", value)).toBe(
+    expect(foxy.hmacSign.name(name, code, "", value)).toBe(
       "name||dbaa042ec8018e342058417e058d7a479226976c7cb287664197fd67970c4715"
     );
   });
@@ -45,7 +45,7 @@ describe("Signer", () => {
   it("Signs an input name with user edited values", () => {
     const code = "ABC123";
     const name = "name";
-    expect(foxy.hmacSign.inputName(name, code, "")).toBe(
+    expect(foxy.hmacSign.name(name, code, "")).toBe(
       "name||3f2075135e3455131bd0d6ce8643551e9e2e43bc09dd0474fa3effbe4e588c9e||open"
     );
   });
@@ -100,10 +100,9 @@ describe("Signer", () => {
     }
   });
 
-  it("Signs a whole Form", () => {
+  it("Signs an HTML string", () => {
     const htmlString = fs.readFileSync("./test/mocks/html/onepagewithforms.html").toString();
     const signedHTML = foxy.hmacSign.htmlString(htmlString);
-    console.debug(signedHTML);
     // e.g: ||aed2692b1b278b04b974c3c9822e597dc5da880561cf256ab20b2873a5346b66=
     const namePrefixRegex = /name="\d{1,3}:/;
     const valuePrefixRegex = /value="\d{1,3}:/;
@@ -119,7 +118,6 @@ describe("Signer", () => {
     ];
     for (const p of expectedAttributeMatches) {
       const toMatch = new RegExp(p[0].source + p[1].source + signatureRegex.source, "g");
-      console.debug(toMatch);
       const signedItems = signedHTML.match(toMatch);
       expect(signedItems.length).toBe(p[2]);
     }
