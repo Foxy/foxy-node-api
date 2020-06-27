@@ -239,17 +239,21 @@ export class FoxySigner implements Signer {
     }
 
     // Sign inputs
-    const inputs = formElement
-      .querySelectorAll("input[name]")
-      .forEach((i) => this.input(i as HTMLInputElement, codes));
+    formElement.querySelectorAll("input[name]").forEach((i) => {
+      if (i.getAttribute("type") === "radio") {
+        this.radio(i as HTMLInputElement, codes);
+      } else {
+        this.input(i as HTMLInputElement, codes);
+      }
+    });
 
     // Sign selects
-    const selects = formElement
+    formElement
       .querySelectorAll("select[name]")
       .forEach((s) => this.select(s as HTMLSelectElement, codes));
 
     // Sign textAreas
-    const textAreas = formElement
+    formElement
       .querySelectorAll("textarea[name]")
       .forEach((s) => this.textArea(s as HTMLTextAreaElement, codes));
   }
