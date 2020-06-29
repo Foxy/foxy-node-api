@@ -53,6 +53,20 @@ describe("Signer", () => {
     expect(foxy.hmacSign.name(name, code, "")).toBe(
       "name||3f2075135e3455131bd0d6ce8643551e9e2e43bc09dd0474fa3effbe4e588c9e||open"
     );
+    expect(foxy.hmacSign.name(name, code)).toBe(
+      "name||3f2075135e3455131bd0d6ce8643551e9e2e43bc09dd0474fa3effbe4e588c9e||open"
+    );
+  });
+
+  it("Signs a value with user edited values", () => {
+    const code = "ABC123";
+    const name = "name";
+    expect(foxy.hmacSign.value(name, code, "")).toBe(
+      "||open||3f2075135e3455131bd0d6ce8643551e9e2e43bc09dd0474fa3effbe4e588c9e"
+    );
+    expect(foxy.hmacSign.value(name, code)).toBe(
+      "||open||3f2075135e3455131bd0d6ce8643551e9e2e43bc09dd0474fa3effbe4e588c9e"
+    );
   });
 
   it("Signs a query string", () => {
@@ -152,6 +166,12 @@ describe("Signer", () => {
       const signedItems = result.match(toMatch);
       expect(signedItems.length).toBe(p[2]);
     }
+
+    const notAFile = await foxy.hmacSign
+      .htmlFile(inputPath, "/shouldNotHavePermissionHere")
+      .then(() => false)
+      .catch(() => true);
+    expect(notAFile).toBe(true);
   });
 
   it("Signs fields with editable values", () => {
@@ -182,7 +202,6 @@ describe("Signer", () => {
     expect(foxy.hmacSign.name("name", "abc124", "abc123", "Different T-Shirt")).toBe(
       "name||ca2df56d0a72b3637b688d519939f7f00551f054cede1e35aa57602201e2b75f"
     );
-    //value(name: string, code: string, parentCode = "", value?: string | number): string {
     // Reuse previously generated signed html
     const result = fs.readFileSync(outputPath).toString();
     expect(
@@ -196,11 +215,22 @@ describe("Signer", () => {
     // Reuse previously generated signed html
     const result = fs.readFileSync(outputPath).toString();
     expect(result.match(/name="honeypot"/).length).toBe(1);
-
-    const simpleHTML = `<html><head></head><body><h1>Test form</h1><div><p>There is no
-   form to be found here</p></div></body></html>`;
-    const signed = foxy.hmacSign.htmlString(simpleHTML);
+    // Do not affect html without code attribute
+    let simpleHTML = `<html><head></head><body><h1>Test form</h1><div><p>There is no form to be found here</p></div></body></html>`;
+    let signed = foxy.hmacSign.htmlString(simpleHTML);
     expect(signed).toBe(simpleHTML);
+    // Do not affect forms html without code attribute
+    simpleHTML = `<html><head></head><body><h1>Test
+    form</h1><div><form>There is no code to be found here
+    <input name="test" type="text"></form></div></body></html>`;
+    signed = foxy.hmacSign.htmlString(simpleHTML);
+    expect(signed).toBe(simpleHTML);
+    // Do not change a form element without a code
+    const dom = new JSDOM(simpleHTML).window.document;
+    const f = dom.querySelector("form");
+    const prev = f.outerHTML;
+    foxy.hmacSign.form(f);
+    expect(f.outerHTML).toBe(prev);
   });
 
   it("Does not process multiple codes for a product", () => {
@@ -230,5 +260,18 @@ describe("Signer", () => {
     const simpleHTML = `<div><a href="what://code=test" >Click to buy</a></div>`;
     const badURL = () => foxy.hmacSign.url(simpleHTML);
     expect(badURL).toThrowError();
+  });
+
+  it("Parent code can be missing", () => {
+    const noParent = `
+    <form>
+    <input name="code" value="test">
+    <input name="parent_code" >
+    </form>
+    `;
+    const signed = foxy.hmacSign.htmlString(noParent);
+    expect(
+      signed.match(/3ce339bde0689065ad4f18698603d5f957581bc8ef819e1a6d5a11ddefddc46a/).length
+    ).toBe(1);
   });
 });
