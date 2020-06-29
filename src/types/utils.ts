@@ -254,7 +254,6 @@ export type Order<Curie> =
  */
 export interface Signer {
   setSecret(secret: string): Signer;
-  product(code: string, name: string, value?: string | number): string;
   name(name: string, code: string, parentCode: string, value?: string): string;
   value(name: string, code: string, parentCode: string, value?: string): string;
   url(query: string): string;

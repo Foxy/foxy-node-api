@@ -161,13 +161,48 @@ The HMAC validation is one of the methods you can use to secure your e-commerce 
 
 Please, refer to [HMAC Product Verification: Locking Down your Add-To-Cart Links and Forms](https://wiki.foxycart.com/v/2.0/hmac_validation)
 
-### Providing your secret
+The HMAC signer utility is provided as part of the set of tools available in the `FoxyAPI`.
+It is available as the hmacSign property of `FoxyApi` instance.
+
 
 ### Signing 
 
-There are three basic methods you can use to sign secure your application with HMAC Validation. You may sign your whole HTML file, particular URL links or individual form elements.
+The FoxySigner utility provides the following basic methods:
+
+- **hmacSign.htmlString(html: string)**: Signs an HTML snippet;
+- **hmacSign.htmlFile(path: string, output: string)**: Signs an HTML file asynchronously;
+- **hmacSign.url(url: string)**: Signs a URL;
+
+There are also some more advanced methods that allow you to create signatures to be used in your fields and queries, thus integrating the signatures in your application.
 
 Please, notice that **HMAC VALIDATION IS ALL OR NOTHING**.  Signing individual name/value elements is only useful if you do sign all fields individually. 
+
+#### Obtaining a FoxySigner instance
+When a new FoxyApi instance is created, it holds a hmacSign attribute, which is an instance of FoxySigner.
+
+If you are not using FoxyApi, you can directly create an instance of FoxySigner, but you will be required to call the setSecret method in order to provide your key.
+
+##### Using your FoxyApi instance
+
+
+```ts
+import { FoxyApi } from "@foxy.io/node-api";
+const foxy = new FoxyApi({
+  clientId: "client_MY-CLIENT-ID",
+  clientSecret: "long-alphanumeric-client-secret",
+  refreshToken: "long-alphanumeric-refresh-token",
+});
+const hmacSign = foxy.hmacSign;
+```
+
+##### Creating a signer without a FoxyApi instance
+
+```js
+import { FoxySigner } from "@foxy.io/utils/signer";
+const hmacSign = new FoxySigner();
+hmacSign.setSecret('long-alphanumeric-client-secret');
+
+```
 
 #### Sign HTML
 
@@ -176,9 +211,8 @@ The simplest method is to sign a full HTML page.
 This option imposes a performance hit if you are building your pages in runtime.
 
 ```js
-const foxy = new FoxyApi();
-foxy.hmacSign.setSecret("MySuperSecretKey");
-const signedHTML = foxy.hmacSign.htmlString(myHTMLcode);
+hmacSign.setSecret("MySuperSecretKey");
+const signedHTML = hmacSign.htmlString(myHTMLcode);
 ```
 
 You may also sign static HTML files.
@@ -186,9 +220,8 @@ You may also sign static HTML files.
 This operation is Asynchronous.
 
 ```js
-const foxy = new FoxyApi();
-foxy.hmacSign.setSecret("MySuperSecretKey");
-const signedHTML = foxy.hmacSign.htmlFile(pathToInputFile, pathToOutputFile)
+hmacSign.setSecret("MySuperSecretKey");
+const signedHTML = hmacSign.htmlFile(pathToInputFile, pathToOutputFile)
 	.then(callback);
 ```
 
@@ -207,8 +240,7 @@ not present, the query will not be signed.
 
 
 ```js
-const foxy = new FoxyApi();
-foxy.hmacSign.setSecret("MySuperSecretKey");
+hmacSign.setSecret("MySuperSecretKey");
 const signedURL = hmacSign.url(unsigedURL);
 ```
 The `signedURL` variable should be used as the link `href`
@@ -228,14 +260,12 @@ Here is how you obtain a signed name/value to use in your
 element.
 
 ```js
-const foxy = new FoxyApi();
-foxy.hmacSign.setSecret("MySuperSecretKey");
+hmacSign.setSecret("MySuperSecretKey");
 const signedName = hmacSign.name(unsignedName, code, parentCode, value);
 ```
 
 ```js
-const foxy = new FoxyApi();
-foxy.hmacSign.setSecret("MySuperSecretKey");
+hmacSign.setSecret("MySuperSecretKey");
 const signedValue = hmacSign.value(unsignedName, code, parentCode, value);
 ```
 

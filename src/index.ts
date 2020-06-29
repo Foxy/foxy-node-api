@@ -5,7 +5,7 @@ import { Sender, SendRawInit } from "./sender";
 import { ApiGraph, Followable, Signer } from "./types/utils";
 import { Graph } from "./types/api/graph";
 import { Props } from "./types/api/props";
-import { FoxySigner } from "./signer";
+import { FoxySigner } from "./utils/signer";
 import * as cache from "./utils/cache";
 import * as sanitize from "./utils/sanitize";
 import * as sso from "./utils/sso";

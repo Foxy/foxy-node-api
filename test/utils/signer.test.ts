@@ -1,11 +1,9 @@
 import * as crypto from "crypto";
 import * as fs from "fs";
 import { JSDOM } from "jsdom";
-import { FoxyApi } from "../src";
-import { FoxySigner } from "../src/signer";
-import { auth as MockAuth } from "./mocks/settings";
-
-const secret = "Your store's secret key.";
+import { FoxyApi } from "../../src";
+import { FoxySigner } from "../../src/utils/signer";
+import { auth as MockAuth } from "../mocks/settings";
 
 describe("Signer", () => {
   const foxy = new FoxyApi(MockAuth.simple);

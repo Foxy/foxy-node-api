@@ -1,5 +1,5 @@
 import * as crypto from "crypto";
-import { Signer, CodesDict } from "./types/utils";
+import { Signer, CodesDict } from "../types/utils";
 import { JSDOM } from "jsdom";
 import * as fs from "fs";
 
@@ -11,6 +11,10 @@ type codeObject = {
 };
 
 export class FoxySigner implements Signer {
+  /** Methods are named after what it is to be signed, to
+   * allow for an easy to read code in the user application.
+   * i.e.: the method url, should be called as * foxy.hmacSign.url('http://...')
+   */
   private secret?: string;
 
   constructor(secret: string | null = null) {
@@ -27,6 +31,7 @@ export class FoxySigner implements Signer {
   }
 
   public htmlString(htmlStr: string) {
+    /** Signs a whole HTML snippet */
     const dom = new JSDOM(htmlStr);
     const signed = this.fragment(dom.window.document);
     return dom.serialize();
@@ -45,22 +50,22 @@ export class FoxySigner implements Signer {
     });
   }
 
-  public url(query: string): string {
+  public url(urlStr: string): string {
     /** Signs a query string
      * All query fields withing the query string will be signed. */
     // Build a URL object
-    if (this.isSigned(query)) {
-      console.error("Attempt to sign a signed URL", query);
-      return query;
+    if (this.isSigned(urlStr)) {
+      console.error("Attempt to sign a signed URL", urlStr);
+      return urlStr;
     }
-    const url = new URL(query);
+    const url = new URL(urlStr);
     const stripped = new URL(url.origin);
     const original_params = url.searchParams;
     const new_params = stripped.searchParams;
-    const code = this.getCodeFromURL(query);
+    const code = this.getCodeFromURL(urlStr);
     // If there is no code, return the same URL
     if (!code) {
-      return query;
+      return urlStr;
     }
     // sign the url object
     for (const p of original_params.entries()) {
