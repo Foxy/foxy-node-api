@@ -2,6 +2,7 @@ import * as crypto from "crypto";
 import * as fs from "fs";
 import { JSDOM } from "jsdom";
 import { FoxyApi } from "../src";
+import { FoxySigner } from "../src/signer";
 import { auth as MockAuth } from "./mocks/settings";
 
 const secret = "Your store's secret key.";
@@ -40,6 +41,9 @@ describe("Signer", () => {
     const value = "My Example Product";
     expect(foxy.hmacSign.name(name, code, "", value)).toBe(
       "name||dbaa042ec8018e342058417e058d7a479226976c7cb287664197fd67970c4715"
+    );
+    expect(foxy.hmacSign.name(name, code, "", 100)).toBe(
+      "name||bd87a3e47a20a60c9c5d7d2a026605310f20753b80535e56336cfd5502f61143"
     );
   });
 
@@ -150,7 +154,7 @@ describe("Signer", () => {
     }
   });
 
-  it("Signs fields with editable values", async () => {
+  it("Signs fields with editable values", () => {
     // Reuse previously generated signed html
     const result = fs.readFileSync(outputPath).toString();
     const colorEditable = /name="\d{1,3}:color\|\|[0-9a-fA-F]{64}||open\W/;
@@ -161,7 +165,7 @@ describe("Signer", () => {
     expect(signedItems.length).toBe(1);
   });
 
-  it("Preserves different products", async () => {
+  it("Preserves different products", () => {
     const inputPath = "./test/mocks/html/onepagewithforms.html";
     const before = fs.readFileSync(inputPath).toString();
     // Reuse previously generated signed html
@@ -174,7 +178,7 @@ describe("Signer", () => {
     expect(names2before).toBe(names2after);
   });
 
-  it("Properly signs signs bundled products", async () => {
+  it("Properly signs signs bundled products", () => {
     expect(foxy.hmacSign.name("name", "abc124", "abc123", "Different T-Shirt")).toBe(
       "name||ca2df56d0a72b3637b688d519939f7f00551f054cede1e35aa57602201e2b75f"
     );
@@ -186,5 +190,45 @@ describe("Signer", () => {
         /name="2:name\|\|ca2df56d0a72b3637b688d519939f7f00551f054cede1e35aa57602201e2b75f" value="Different T-Shirt"/
       ).length
     ).toBe(1);
+  });
+
+  it("Do not touch forms without code", () => {
+    // Reuse previously generated signed html
+    const result = fs.readFileSync(outputPath).toString();
+    expect(result.match(/name="honeypot"/).length).toBe(1);
+
+    const simpleHTML = `<html><head></head><body><h1>Test form</h1><div><p>There is no
+   form to be found here</p></div></body></html>`;
+    const signed = foxy.hmacSign.htmlString(simpleHTML);
+    expect(signed).toBe(simpleHTML);
+  });
+
+  it("Does not process multiple codes for a product", () => {
+    const simpleHTML = `<html><head></head><body><h1>Test form</h1>
+       <form>
+       <input name="code" value="test">
+       <input name="code" value="test2">
+       </form>
+       </body></html>`;
+    expect(() => foxy.hmacSign.htmlString(simpleHTML)).toThrowError();
+  });
+
+  it("Does not resigns a url", async () => {
+    const url = "http://storename?code=ABC123&name=name&value=My Example Product";
+    const signed = foxy.hmacSign.url(url);
+    const reSigned = foxy.hmacSign.url(signed);
+    expect(signed).toBe(reSigned);
+  });
+
+  it("Does not sign without a secret", () => {
+    const woSecretFoxy = new FoxySigner();
+    const woSign = () => woSecretFoxy.message("http://signthis");
+    expect(woSign).toThrowError();
+  });
+
+  it("Does not sign invalid URL", () => {
+    const simpleHTML = `<div><a href="what://code=test" >Click to buy</a></div>`;
+    const badURL = () => foxy.hmacSign.url(simpleHTML);
+    expect(badURL).toThrowError();
   });
 });

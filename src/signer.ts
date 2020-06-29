@@ -71,6 +71,10 @@ export class FoxySigner implements Signer {
     /** Signs a query string
      * All query fields withing the query string will be signed. */
     // Build a URL object
+    if (this.isSigned(query)) {
+      console.error("Attempt to sign a signed URL", query);
+      return query;
+    }
     const url = new URL(query);
     const stripped = new URL(url.origin);
     const original_params = url.searchParams;
@@ -203,10 +207,8 @@ export class FoxySigner implements Signer {
     const products = {};
     // Grab all codes within the form element
     const codeList: NodeList = formElement.querySelectorAll("[name$=code]");
-    if (codeList.length == 0) {
-      // If there is no code field, it shouldn't be signed
-      return;
-    }
+    // If there is no code field, it shouldn't be signed
+    if (codeList.length == 0) return;
     // Store all codes in a object
     const codes: any = {};
     for (const node of codeList) {
@@ -235,7 +237,6 @@ export class FoxySigner implements Signer {
         }
       }
     }
-
     // Sign inputs
     formElement.querySelectorAll("input[name]").forEach((i) => {
       if (i.getAttribute("type") === "radio") {
@@ -244,52 +245,14 @@ export class FoxySigner implements Signer {
         this.input(i as HTMLInputElement, codes);
       }
     });
-
     // Sign selects
     formElement
       .querySelectorAll("select[name]")
       .forEach((s) => this.select(s as HTMLSelectElement, codes));
-
     // Sign textAreas
     formElement
       .querySelectorAll("textarea[name]")
       .forEach((s) => this.textArea(s as HTMLTextAreaElement, codes));
-  }
-
-  // TODO: find a propper name to this function
-  // It is actually converting a pair of parameters into a
-  // product field
-  private codeObject(codeString: string, value: string | null): codeObject | null {
-    const parts = codeString.split(":");
-    if (parts.length != 2) {
-      const parts = [0, codeString];
-    }
-    return {
-      name: parts[1],
-      prefix: parts[0],
-      value,
-      codeString,
-    };
-  }
-
-  /**
-   * Raw HTML Signing: Sign all links and form elements in a block of HTML
-   *
-   * Accepts a string of HTML and signs all links and forms.
-   * Requires link 'href' and form 'action' attributes to use 'https' and not 'http'.
-   * Requires a 'code' to be set in every form.
-   *
-   * @return string
-   **/
-  private page(document: Document): string {
-    //// Find and sign all the links
-    //preg_match_all('%<a .*?href=([\'"])'.preg_quote(self::$cart_url).'(?:\.php)?\?(.+?)\1.*?>%i', $html, $querystrings);
-    const links = document.querySelectorAll("a");
-    for (const l of links) {
-      l.href = this.url(l.href);
-    }
-    const forms = document.querySelectorAll("forms");
-    return "";
   }
 
   private buildSignedName(name: string, signature: string, value?: string | number) {
@@ -328,8 +291,8 @@ export class FoxySigner implements Signer {
   /** Check if a href string is already signed signed
    * strings contains two consecutive pipes followed by 64
    * hexadecimal characters */
-  private isSigned(a: HTMLAnchorElement): boolean {
-    return a.href.match(/^.*\|\|[0-9a-fA-F]{64}/) != null;
+  private isSigned(url: string): boolean {
+    return url.match(/^.*\|\|[0-9a-fA-F]{64}/) != null;
   }
 
   /** Returns the code from a HTMLAnchorElement or null if
@@ -369,10 +332,7 @@ export class FoxySigner implements Signer {
       try {
         l.href = this.url(l.href);
       } catch (e) {
-        // Disregard error if href is not a URL
-        if (e.code !== "ERR_INVALID_URL") {
-          throw e;
-        }
+        console.assert(e.code === "ERR_INVALID_URL");
       }
     }
     const forms = this.findCartForms(doc);

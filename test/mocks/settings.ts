@@ -8,4 +8,11 @@ export const auth = {
     endpoint: "https://api.foxy.local",
     silent: true,
   } as AuthInit,
+  secretLess: {
+    clientId: "0",
+    clientSecret: "",
+    refreshToken: "42",
+    endpoint: "https://api.foxy.local",
+    silent: true,
+  } as AuthInit,
 };
