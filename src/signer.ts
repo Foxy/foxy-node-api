@@ -271,11 +271,16 @@ export class FoxySigner implements Signer {
     return `${open}||${signature}`;
   }
 
-  private buildSignedQueryArg(name: string, signature: string, value?: string | number) {
+  private buildSignedQueryArg(
+    name: string,
+    signature: string,
+    value: string | number,
+    open?: boolean
+  ) {
     /** Builds a signed query argument given its components.
      * This method does not sign. */
-    const open = value ? "" : "||open";
-    return `${name}||${signature}${open}=${value}`;
+    const openKey = open ? "||open" : "";
+    return `${name}||${signature}${openKey}=${value}`;
   }
 
   private valueOrOpen(value: string | number | undefined): string | number {
@@ -322,11 +327,10 @@ export class FoxySigner implements Signer {
     return urlStr.replace(/%7C/g, "|").replace(/%3D/g, "=").replace(/%2B/g, "+");
   }
 
-  public findLinks(doc: DocumentFragment) {
-    return doc.querySelectorAll("a");
-  }
-
   public fragment(doc: DocumentFragment): DocumentFragment {
+    /** Signs a document fragment.
+     * This method is used to sign HTML snippets.
+     */
     const links = doc.querySelectorAll("a");
     for (const l of links) {
       try {

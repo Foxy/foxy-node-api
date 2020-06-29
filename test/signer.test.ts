@@ -29,6 +29,13 @@ describe("Signer", () => {
   `;
   const outputPath = "/tmp/foxyTestOutput.html";
 
+  it("Properly places the 'open' keyword", () => {
+    expect(foxy.hmacSign.buildSignedQueryArg("name", "sig", "value", true)).toBe(
+      "name||sig||open=value"
+    );
+    expect(foxy.hmacSign.buildSignedQueryArg("name", "sig", "value")).toBe("name||sig=value");
+  });
+
   it("Signs a message", () => {
     expect(foxy.hmacSign.message("My secret message")).toBe(
       "070273763c37748d6da8ef8dde7ef847857c4d61a7016244df0b2843dbf417aa"
@@ -76,10 +83,6 @@ describe("Signer", () => {
     expect(foxy.hmacSign.queryArg(name, code, value)).toBe(
       "name||dbaa042ec8018e342058417e058d7a479226976c7cb287664197fd67970c4715=My+Example+Product"
     );
-  });
-
-  it("Finds all links in HTML text", () => {
-    expect(foxy.hmacSign.findLinks(JSDOM.fragment(mockHTML)).length).toBe(2);
   });
 
   it("Finds all the cart Links within a piece of document", () => {
@@ -245,9 +248,12 @@ describe("Signer", () => {
 
   it("Does not resigns a url", async () => {
     const url = "http://storename?code=ABC123&name=name&value=My Example Product";
+    const consoleerror = console.error;
+    console.error = jest.fn();
     const signed = foxy.hmacSign.url(url);
     const reSigned = foxy.hmacSign.url(signed);
     expect(signed).toBe(reSigned);
+    console.error = consoleerror;
   });
 
   it("Does not sign without a secret", () => {
@@ -260,6 +266,11 @@ describe("Signer", () => {
     const simpleHTML = `<div><a href="what://code=test" >Click to buy</a></div>`;
     const badURL = () => foxy.hmacSign.url(simpleHTML);
     expect(badURL).toThrowError();
+  });
+
+  it("Detects missing code in url", () => {
+    expect(foxy.hmacSign.getCodeFromURL("http://test.com?nothing=0&else=0")).toBe(undefined);
+    expect(foxy.hmacSign.getCodeFromURL("http://test.com?code=code&else=0")).toBe("code");
   });
 
   it("Parent code can be missing", () => {
