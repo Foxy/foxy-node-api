@@ -109,13 +109,13 @@ describe("Signer", () => {
     const valuePrefixRegex = /value="\d{1,3}:/;
     const signatureRegex = /\|\|[0-9a-fA-F]{64}\W/;
     const expectedAttributeMatches: [RegExp, RegExp, number][] = [
-      [namePrefixRegex, /name/, 3],
-      [namePrefixRegex, /price/, 3],
-      [namePrefixRegex, /code/, 3],
-      [valuePrefixRegex, /small\{p-2\}/, 3],
-      [valuePrefixRegex, /medium/, 3],
-      [valuePrefixRegex, /large\{p\+3\}/, 3],
-      [namePrefixRegex, /quantity/, 3],
+      [namePrefixRegex, /name/, 5],
+      [namePrefixRegex, /price/, 5],
+      [namePrefixRegex, /code/, 5],
+      [valuePrefixRegex, /small\{p-2\}/, 5],
+      [valuePrefixRegex, /medium/, 5],
+      [valuePrefixRegex, /large\{p\+3\}/, 5],
+      [namePrefixRegex, /quantity/, 5],
     ];
     for (const p of expectedAttributeMatches) {
       const toMatch = new RegExp(p[0].source + p[1].source + signatureRegex.source, "g");
@@ -132,16 +132,16 @@ describe("Signer", () => {
     const valuePrefixRegex = /value="\d{1,3}:/;
     const signatureRegex = /\|\|[0-9a-fA-F]{64}\W/;
     const expectedAttributeMatches: [RegExp, RegExp, number][] = [
-      [namePrefixRegex, /name/, 3],
-      [namePrefixRegex, /price/, 3],
-      [namePrefixRegex, /code/, 3],
-      [valuePrefixRegex, /express/, 1],
-      [valuePrefixRegex, /regular/, 1],
-      [valuePrefixRegex, /pickup/, 1],
-      [valuePrefixRegex, /small\{p-2\}/, 3],
-      [valuePrefixRegex, /medium/, 3],
-      [valuePrefixRegex, /large\{p\+3\}/, 3],
-      [namePrefixRegex, /quantity/, 3],
+      [namePrefixRegex, /name/, 5],
+      [namePrefixRegex, /price/, 5],
+      [namePrefixRegex, /code/, 5],
+      [valuePrefixRegex, /express/, 3],
+      [valuePrefixRegex, /regular/, 3],
+      [valuePrefixRegex, /pickup/, 3],
+      [valuePrefixRegex, /small\{p-2\}/, 5],
+      [valuePrefixRegex, /medium/, 5],
+      [valuePrefixRegex, /large\{p\+3\}/, 5],
+      [namePrefixRegex, /quantity/, 5],
     ];
     for (const p of expectedAttributeMatches) {
       const toMatch = new RegExp(p[0].source + p[1].source + signatureRegex.source, "g");
@@ -159,5 +159,32 @@ describe("Signer", () => {
     expect(signedItems.length).toBe(1);
     signedItems = result.match(additionalDetails);
     expect(signedItems.length).toBe(1);
+  });
+
+  it("Preserves different products", async () => {
+    const inputPath = "./test/mocks/html/onepagewithforms.html";
+    const before = fs.readFileSync(inputPath).toString();
+    // Reuse previously generated signed html
+    const result = fs.readFileSync(outputPath).toString();
+    const names1before = before.match(/name="1:/g).length;
+    const names1after = result.match(/name="1:/g).length;
+    const names2before = before.match(/name="2:/g).length;
+    const names2after = result.match(/name="2:/g).length;
+    expect(names1before).toBe(names1after);
+    expect(names2before).toBe(names2after);
+  });
+
+  it("Properly signs signs bundled products", async () => {
+    expect(foxy.hmacSign.name("name", "abc124", "abc123", "Different T-Shirt")).toBe(
+      "name||ca2df56d0a72b3637b688d519939f7f00551f054cede1e35aa57602201e2b75f"
+    );
+    //value(name: string, code: string, parentCode = "", value?: string | number): string {
+    // Reuse previously generated signed html
+    const result = fs.readFileSync(outputPath).toString();
+    expect(
+      result.match(
+        /name="2:name\|\|ca2df56d0a72b3637b688d519939f7f00551f054cede1e35aa57602201e2b75f" value="Different T-Shirt"/
+      ).length
+    ).toBe(1);
   });
 });

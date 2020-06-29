@@ -22,7 +22,6 @@
       <input type="radio" name="shipment" value="express" />
       <input type="radio" name="shipment" value="regular" />
       <input type="radio" name="shipment" value="pickup" />
-
       <textarea name="aditional-details" value=""></textarea>
       <select name="size">
         <option value="small{p-2}">Small</option>
@@ -30,6 +29,37 @@
         <option value="large{p+3}">Large</option>
       </select>
       <label>Qty: <input type="text" name="quantity" value="" /></label>
+
+
+      <input type="hidden" name="1:name" value="Example T-Shirt" />
+      <input type="hidden" name="1:code" value="abc123" />
+      <input type="hidden" name="1:price" value="25" />
+      <input type="radio" name="1:shipment" value="express" />
+      <input type="radio" name="1:shipment" value="regular" />
+      <input type="radio" name="1:shipment" value="pickup" />
+      <textarea name="1:aditional-details" value=""></textarea>
+      <select name="1:size">
+        <option value="small{p-2}">Small</option>
+        <option value="medium">Medium</option>
+        <option value="large{p+3}">Large</option>
+      </select>
+      <label>Qty: <input type="text" name="1:quantity" value="" /></label>
+
+
+      <input type="hidden" name="2:name" value="Different T-Shirt" />
+      <input type="hidden" name="2:code" value="abc124" />
+      <input type="hidden" name="2:parent_code" value="abc123" />
+      <input type="hidden" name="2:price" value="25" />
+      <input type="radio" name="2:shipment" value="express" />
+      <input type="radio" name="2:shipment" value="regular" />
+      <input type="radio" name="2:shipment" value="pickup" />
+      <textarea name="2:aditional-details" value=""></textarea>
+      <select name="2:size">
+        <option value="small{p-2}">Small</option>
+        <option value="medium">Medium</option>
+        <option value="large{p+3}">Large</option>
+      </select>
+      <label>Qty: <input type="text" name="2:quantity" value="" /></label>
       <p><input type="submit" value="Buy It!"></p>
     </form>
 

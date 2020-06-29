@@ -146,6 +146,9 @@ export class FoxySigner implements Signer {
     el: HTMLOptionElement | HTMLInputElement,
     codes: CodesDict
   ): HTMLOptionElement | HTMLInputElement {
+    // Get the name parameter, either from the "select"
+    // parent element of an option tag or from the name
+    // attribute of the input element itself
     let n = (el as any).name;
     if (n === undefined) {
       const p = el.parentElement as HTMLSelectElement;
@@ -178,16 +181,14 @@ export class FoxySigner implements Signer {
     return [0, name];
   }
 
-  /** Retrieve a parent code value from a form, given a
-   * prefix */
   private retrieveParentCode(formElement: Element, prefix: string | number = ""): string {
-    // A blank string indicates no parent
-    let result = "";
+    /** Retrieve a parent code value from a form, given a prefix */
+    let result = ""; // A blank string indicates no parent
     let separator = "";
     if (prefix) {
       separator = ":";
     }
-    const parentCodeEl = formElement.querySelector(`[name=${prefix}${separator}parent_code]`);
+    const parentCodeEl = formElement.querySelector(`[name='${prefix}${separator}parent_code']`);
     if (parentCodeEl) {
       const parentCode = parentCodeEl.getAttribute("value");
       if (parentCode !== null) {
@@ -200,33 +201,30 @@ export class FoxySigner implements Signer {
   private form(formElement: Element) {
     /** Signs a whole form element */
     const products = {};
-    //  // Check for the "code" input, set the matches in $codes
-    //  if (!preg_match_all('%<[^>]*?name=([\'"])([0-9]{1,3}:)?code\1[^>]*?>%i', $form, $codes, PREG_SET_ORDER)) {
-    //      self::$log[] = '<strong style="color:#600;">No code found</strong> for the above form.';
-    //      continue;
-    //  }
+    // Grab all codes within the form element
     const codeList: NodeList = formElement.querySelectorAll("[name$=code]");
     if (codeList.length == 0) {
       // If there is no code field, it shouldn't be signed
       return;
     }
-    // Simple list of integer codes
+    // Store all codes in a object
     const codes: any = {};
     for (const node of codeList) {
       const nameAttr = (node as Element).getAttribute("name");
+      const codeValue = (node as Element).getAttribute("value");
       if (nameAttr && nameAttr.match(/^([0-9]{1,3}:)?code/)) {
         const splitted = nameAttr.split(":");
         const prefix = splitted[0];
         if (splitted.length == 2) {
           // Store prefix in codes list
           codes[prefix] = {
-            code: splitted[1],
+            code: codeValue,
             parent: this.retrieveParentCode(formElement, prefix),
           };
         } else if (codes[0] === undefined) {
           // Allow to push a single code without prefix
           codes[0] = {
-            code: nameAttr,
+            code: codeValue,
             parent: this.retrieveParentCode(formElement),
           };
         } else {
