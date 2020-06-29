@@ -183,11 +183,15 @@ const signedHTML = foxy.hmacSign.htmlString(myHTMLcode);
 
 You may also sign static HTML files.
 
+This operation is Asynchronous.
+
 ```js
 const foxy = new FoxyApi();
 foxy.hmacSign.setSecret("MySuperSecretKey");
-const signedHTML = foxy.hmacSign.htmlFile(pathToInputFile, pathToOutputFile);
+const signedHTML = foxy.hmacSign.htmlFile(pathToInputFile, pathToOutputFile)
+	.then(callback);
 ```
+
 
 #### Sign a URL
 
@@ -205,11 +209,10 @@ not present, the query will not be signed.
 ```js
 const foxy = new FoxyApi();
 foxy.hmacSign.setSecret("MySuperSecretKey");
-const signedURL = hmacSign.queryString(unsigedURL);
+const signedURL = hmacSign.url(unsigedURL);
 ```
-The `signedURL` variable should be used as the link `href`.
-
-
+The `signedURL` variable should be used as the link `href`
+attribute.
 
 #### Sign individual name/value elements
 
@@ -227,12 +230,18 @@ element.
 ```js
 const foxy = new FoxyApi();
 foxy.hmacSign.setSecret("MySuperSecretKey");
-const signedName = hmacSign.name(unsignedName, code,
-parentCode, value);
+const signedName = hmacSign.name(unsignedName, code, parentCode, value);
+```
+
+```js
+const foxy = new FoxyApi();
+foxy.hmacSign.setSecret("MySuperSecretKey");
+const signedValue = hmacSign.value(unsignedName, code, parentCode, value);
 ```
 
 Please, be careful to use the signed value in the name or value attribute as described in the documentation.
 
+Notably, the signed value is used for the `option` elements in a `select` element and also for radio buttons.
 
 ## Development
 

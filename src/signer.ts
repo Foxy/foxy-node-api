@@ -45,28 +45,6 @@ export class FoxySigner implements Signer {
     });
   }
 
-  public product(code: string, name: string, value?: string | number): string {
-    /** Signs a product composed of code, name and value */
-    return this.message(code + name + this.valueOrOpen(value));
-  }
-
-  public name(name: string, code: string, parentCode = "", value?: string | number): string {
-    /** Signs an input name to be used in an input form field */
-    name = name.replace(/ /g, "_");
-    const signature = this.product(code + parentCode, name, value);
-    const encodedName = encodeURIComponent(name);
-    const nameAttr = this.buildSignedName(encodedName, signature, value);
-    return nameAttr;
-  }
-
-  public value(name: string, code: string, parentCode = "", value?: string | number): string {
-    /** Signs an input name to be used in an input form field */
-    name = name.replace(/ /g, "_");
-    const signature = this.product(code + parentCode, name, value);
-    const valueAttr = this.buildSignedValue(signature, value);
-    return valueAttr;
-  }
-
   public url(query: string): string {
     /** Signs a query string
      * All query fields withing the query string will be signed. */
@@ -95,6 +73,28 @@ export class FoxySigner implements Signer {
     }
     url.search = new_params.toString();
     return this.replaceURLchars(url.toString());
+  }
+
+  public name(name: string, code: string, parentCode = "", value?: string | number): string {
+    /** Signs an input name to be used in an input form field */
+    name = name.replace(/ /g, "_");
+    const signature = this.product(code + parentCode, name, value);
+    const encodedName = encodeURIComponent(name);
+    const nameAttr = this.buildSignedName(encodedName, signature, value);
+    return nameAttr;
+  }
+
+  public value(name: string, code: string, parentCode = "", value?: string | number): string {
+    /** Signs an input name to be used in an input form field */
+    name = name.replace(/ /g, "_");
+    const signature = this.product(code + parentCode, name, value);
+    const valueAttr = this.buildSignedValue(signature, value);
+    return valueAttr;
+  }
+
+  private product(code: string, name: string, value?: string | number): string {
+    /** Signs a product composed of code, name and value */
+    return this.message(code + name + this.valueOrOpen(value));
   }
 
   private queryArg(name: string, code: string, value?: string): string {
