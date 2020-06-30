@@ -3,13 +3,6 @@ import { Signer, CodesDict } from "../types/utils";
 import { JSDOM } from "jsdom";
 import * as fs from "fs";
 
-type codeObject = {
-  name: string;
-  prefix: string;
-  codeString: string;
-  value: string | number | null;
-};
-
 /**
  * HMAC signing utility. Methods are named after what it is to be signed, to
  * allow for an easy to read code in the user application.
@@ -49,7 +42,7 @@ export class FoxySigner implements Signer {
    */
   public htmlString(htmlStr: string) {
     const dom = new JSDOM(htmlStr);
-    const signed = this.fragment(dom.window.document);
+    this.fragment(dom.window.document);
     return dom.serialize();
   }
 
@@ -276,7 +269,6 @@ export class FoxySigner implements Signer {
    * @private
    */
   private form(formElement: Element) {
-    const products = {};
     // Grab all codes within the form element
     const codeList: NodeList = formElement.querySelectorAll("[name$=code]");
     // If there is no code field, it shouldn't be signed
