@@ -2,7 +2,7 @@ import { Auth } from "./auth";
 import { FOXY_API_URL } from "./env";
 import { Follower } from "./follower";
 import { Sender, SendRawInit } from "./sender";
-import { ApiGraph, Followable, Signer } from "./types/utils";
+import { ApiGraph, Followable } from "./types/utils";
 import { Graph } from "./types/api/graph";
 import { Props } from "./types/api/props";
 import { FoxySigner } from "./utils/signer";
@@ -43,7 +43,7 @@ class Api extends Auth {
   static readonly sso = sso;
 
   /** A set of utilities for signing, i.e. creating HMAC verification codes*/
-  hmacSign: Signer = new FoxySigner(this.clientSecret);
+  hmacSign = new FoxySigner(this.clientSecret);
 
   /**
    * Makes JSON response object followable.

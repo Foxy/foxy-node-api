@@ -1,5 +1,5 @@
 import * as crypto from "crypto";
-import { Signer, CodesDict } from "../types/utils";
+import { CodesDict } from "../types/utils";
 import { JSDOM } from "jsdom";
 import * as fs from "fs";
 
@@ -10,7 +10,7 @@ import * as fs from "fs";
  * @tutorial https://wiki.foxycart.com/v/2.0/hmac_validation
  * @example foxy.hmacSign.url("http://...") // signs a URL
  */
-export class FoxySigner implements Signer {
+export class FoxySigner {
   private _secret?: string;
 
   /**
@@ -30,9 +30,9 @@ export class FoxySigner implements Signer {
    *
    * @param secret OAuth2 client secret for your integration.
    */
-  public setSecret(secret: string): Signer {
+  public setSecret(secret: string): FoxySigner {
     this._secret = secret;
-    return this as Signer;
+    return this;
   }
 
   /**

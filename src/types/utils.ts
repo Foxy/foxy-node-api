@@ -248,19 +248,6 @@ export type Order<Curie> =
     )[]
   | Partial<Record<ArrayItem<Fields<Curie>>, "asc" | "desc">>;
 
-/**
- * An object that signs
- * a set of links to other resources (relations).
- */
-export interface Signer {
-  setSecret(secret: string): Signer;
-  name(name: string, code: string, parentCode: string, value?: string): string;
-  value(name: string, code: string, parentCode: string, value?: string): string;
-  url(query: string): string;
-  htmlString(strHtml: string): string;
-  htmlFile(inputPath: string, outputPath: string): Promise<any>;
-}
-
 export type CodesDict = {
   [key: number]: {
     code: string;
