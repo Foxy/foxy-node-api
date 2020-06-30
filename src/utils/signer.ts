@@ -11,7 +11,7 @@ import * as fs from "fs";
  * @example foxy.hmacSign.url("http://...") // signs a URL
  */
 export class FoxySigner implements Signer {
-  private secret?: string;
+  private _secret?: string;
 
   /**
    * Creates an instance of this class.
@@ -31,7 +31,7 @@ export class FoxySigner implements Signer {
    * @param secret OAuth2 client secret for your integration.
    */
   public setSecret(secret: string): Signer {
-    this.secret = secret;
+    this._secret = secret;
     return this as Signer;
   }
 
@@ -72,30 +72,30 @@ export class FoxySigner implements Signer {
    */
   public url(urlStr: string): string {
     // Build a URL object
-    if (this.isSigned(urlStr)) {
+    if (this._isSigned(urlStr)) {
       console.error("Attempt to sign a signed URL", urlStr);
       return urlStr;
     }
     const url = new URL(urlStr);
     const stripped = new URL(url.origin);
-    const original_params = url.searchParams;
-    const new_params = stripped.searchParams;
+    const originalParams = url.searchParams;
+    const newParams = stripped.searchParams;
     const code = this.getCodeFromURL(urlStr);
     // If there is no code, return the same URL
     if (!code) {
       return urlStr;
     }
     // sign the url object
-    for (const p of original_params.entries()) {
+    for (const p of originalParams.entries()) {
       const signed = this.queryArg(
         decodeURIComponent(p[0]),
         decodeURIComponent(code),
         decodeURIComponent(p[1])
       ).split("=");
-      new_params.set(signed[0], signed[1]);
+      newParams.set(signed[0], signed[1]);
     }
-    url.search = new_params.toString();
-    return this.replaceURLchars(url.toString());
+    url.search = newParams.toString();
+    return this._replaceURLchars(url.toString());
   }
 
   /**
@@ -108,9 +108,9 @@ export class FoxySigner implements Signer {
    */
   public name(name: string, code: string, parentCode = "", value?: string | number): string {
     name = name.replace(/ /g, "_");
-    const signature = this.product(code + parentCode, name, value);
+    const signature = this._product(code + parentCode, name, value);
     const encodedName = encodeURIComponent(name);
-    const nameAttr = this.buildSignedName(encodedName, signature, value);
+    const nameAttr = this._buildSignedName(encodedName, signature, value);
     return nameAttr;
   }
 
@@ -124,8 +124,8 @@ export class FoxySigner implements Signer {
    */
   public value(name: string, code: string, parentCode = "", value?: string | number): string {
     name = name.replace(/ /g, "_");
-    const signature = this.product(code + parentCode, name, value);
-    const valueAttr = this.buildSignedValue(signature, value);
+    const signature = this._product(code + parentCode, name, value);
+    const valueAttr = this._buildSignedValue(signature, value);
     return valueAttr;
   }
 
@@ -133,8 +133,8 @@ export class FoxySigner implements Signer {
    * Signs a product composed of code, name and value.
    * @private
    */
-  private product(code: string, name: string, value?: string | number): string {
-    return this.message(code + name + this.valueOrOpen(value));
+  private _product(code: string, name: string, value?: string | number): string {
+    return this.message(code + name + this._valueOrOpen(value));
   }
 
   /**
@@ -147,9 +147,9 @@ export class FoxySigner implements Signer {
   public queryArg(name: string, code: string, value?: string): string {
     name = name.replace(/ /g, "_");
     code = code.replace(/ /g, "_");
-    const signature = this.product(code, name, value);
+    const signature = this._product(code, name, value);
     const encodedName = encodeURIComponent(name).replace(/%20/g, "+");
-    const encodedValue = encodeURIComponent(this.valueOrOpen(value)).replace(/%20/g, "+");
+    const encodedValue = encodeURIComponent(this._valueOrOpen(value)).replace(/%20/g, "+");
     const nameAttr = this.buildSignedQueryArg(encodedName, signature, encodedValue);
     return nameAttr;
   }
@@ -158,8 +158,8 @@ export class FoxySigner implements Signer {
    * Signs an input element.
    * @private
    */
-  private input(el: HTMLInputElement, codes: CodesDict): HTMLInputElement {
-    const splitted = this.splitNamePrefix(el.name);
+  private _input(el: HTMLInputElement, codes: CodesDict): HTMLInputElement {
+    const splitted = this._splitNamePrefix(el.name);
     const nameString = splitted[1];
     const prefix = splitted[0];
     const code = codes[prefix].code;
@@ -174,8 +174,8 @@ export class FoxySigner implements Signer {
    * Signs a texArea element.
    * @private
    */
-  private textArea(el: HTMLTextAreaElement, codes: CodesDict): HTMLTextAreaElement {
-    const splitted = this.splitNamePrefix(el.name);
+  private _textArea(el: HTMLTextAreaElement, codes: CodesDict): HTMLTextAreaElement {
+    const splitted = this._splitNamePrefix(el.name);
     const nameString = splitted[1];
     const prefix = splitted[0];
     const code = codes[prefix].code;
@@ -190,9 +190,9 @@ export class FoxySigner implements Signer {
    * Signs all option elements within a Select element.
    * @private
    */
-  private select(el: HTMLSelectElement, codes: CodesDict): HTMLSelectElement {
+  private _select(el: HTMLSelectElement, codes: CodesDict): HTMLSelectElement {
     el.querySelectorAll("option").forEach((opt) => {
-      this.option(opt, codes);
+      this._option(opt, codes);
     });
     return el;
   }
@@ -203,7 +203,7 @@ export class FoxySigner implements Signer {
    * This function may also be used to sign radio buttons.
    * @private
    */
-  private option(
+  private _option(
     el: HTMLOptionElement | HTMLInputElement,
     codes: CodesDict
   ): HTMLOptionElement | HTMLInputElement {
@@ -215,7 +215,7 @@ export class FoxySigner implements Signer {
       const p = el.parentElement as HTMLSelectElement;
       n = p.name;
     }
-    const splitted = this.splitNamePrefix(n);
+    const splitted = this._splitNamePrefix(n);
     const nameString = splitted[1];
     const prefix = splitted[0];
     const code = codes[prefix].code;
@@ -230,8 +230,8 @@ export class FoxySigner implements Signer {
    * Signs a radio button. Radio buttons use the value attribute to hold their signatures.
    * @private
    */
-  private radio(el: HTMLInputElement, codes: CodesDict): HTMLInputElement {
-    return this.option(el, codes) as HTMLInputElement;
+  private _radio(el: HTMLInputElement, codes: CodesDict): HTMLInputElement {
+    return this._option(el, codes) as HTMLInputElement;
   }
 
   /**
@@ -239,7 +239,7 @@ export class FoxySigner implements Signer {
    * The prefix pattern allows for including more than a single product in a given GET or POST request.
    * @private
    */
-  private splitNamePrefix(name: string): [number, string] {
+  private _splitNamePrefix(name: string): [number, string] {
     const splitted = name.split(":");
     if (splitted.length == 2) {
       return [parseInt(splitted[0], 10), splitted[1]];
@@ -251,7 +251,7 @@ export class FoxySigner implements Signer {
    * Retrieve a parent code value from a form, given a prefix.
    * @private
    */
-  private retrieveParentCode(formElement: Element, prefix: string | number = ""): string {
+  private _retrieveParentCode(formElement: Element, prefix: string | number = ""): string {
     let result = ""; // A blank string indicates no parent
     let separator = "";
     if (prefix) {
@@ -289,13 +289,13 @@ export class FoxySigner implements Signer {
           // Store prefix in codes list
           codes[prefix] = {
             code: codeValue,
-            parent: this.retrieveParentCode(formElement, prefix),
+            parent: this._retrieveParentCode(formElement, prefix),
           };
         } else if (codes[0] === undefined) {
           // Allow to push a single code without prefix
           codes[0] = {
             code: codeValue,
-            parent: this.retrieveParentCode(formElement),
+            parent: this._retrieveParentCode(formElement),
           };
         } else {
           const documentationURL =
@@ -308,28 +308,28 @@ export class FoxySigner implements Signer {
     // Sign inputs
     formElement.querySelectorAll("input[name]").forEach((i) => {
       if (i.getAttribute("type") === "radio") {
-        this.radio(i as HTMLInputElement, codes);
+        this._radio(i as HTMLInputElement, codes);
       } else {
-        this.input(i as HTMLInputElement, codes);
+        this._input(i as HTMLInputElement, codes);
       }
     });
     // Sign selects
     formElement
       .querySelectorAll("select[name]")
-      .forEach((s) => this.select(s as HTMLSelectElement, codes));
+      .forEach((s) => this._select(s as HTMLSelectElement, codes));
     // Sign textAreas
     formElement
       .querySelectorAll("textarea[name]")
-      .forEach((s) => this.textArea(s as HTMLTextAreaElement, codes));
+      .forEach((s) => this._textArea(s as HTMLTextAreaElement, codes));
   }
 
   /**
    * Builds a signed name given it components.
    * @private
    */
-  private buildSignedName(name: string, signature: string, value?: string | number) {
-    let open = this.valueOrOpen(value);
-    open = this.valueOrOpen(value) == "--OPEN--" ? "||open" : "";
+  private _buildSignedName(name: string, signature: string, value?: string | number) {
+    let open = this._valueOrOpen(value);
+    open = this._valueOrOpen(value) == "--OPEN--" ? "||open" : "";
     return `${name}||${signature}${open}`;
   }
 
@@ -337,9 +337,9 @@ export class FoxySigner implements Signer {
    * Builds a signed name given it components.
    * @private
    */
-  private buildSignedValue(signature: string, value?: string | number) {
-    let open = this.valueOrOpen(value);
-    open = this.valueOrOpen(value) == "--OPEN--" ? "||open" : (value as string);
+  private _buildSignedValue(signature: string, value?: string | number) {
+    let open = this._valueOrOpen(value);
+    open = this._valueOrOpen(value) == "--OPEN--" ? "||open" : (value as string);
     return `${open}||${signature}`;
   }
 
@@ -366,7 +366,7 @@ export class FoxySigner implements Signer {
    * Please, notice that `0` is an acceptable value.
    * @private
    */
-  private valueOrOpen(value: string | number | undefined): string | number {
+  private _valueOrOpen(value: string | number | undefined): string | number {
     if (value === undefined || value === null || value === "") {
       return "--OPEN--";
     }
@@ -378,7 +378,7 @@ export class FoxySigner implements Signer {
    * followed by 64 hexadecimal characters.
    * @private
    */
-  private isSigned(url: string): boolean {
+  private _isSigned(url: string): boolean {
     return url.match(/^.*\|\|[0-9a-fA-F]{64}/) != null;
   }
 
@@ -409,7 +409,7 @@ export class FoxySigner implements Signer {
    * Find all cart forms in a document fragment that contain an input named `code`.
    * @private
    */
-  private findCartForms(doc: ParentNode) {
+  private _findCartForms(doc: ParentNode) {
     return Array.from(doc.querySelectorAll("form")).filter((e) => e.querySelector("[name=code]"));
   }
 
@@ -417,7 +417,7 @@ export class FoxySigner implements Signer {
    * Replace some of the characters encoded by `encodeURIComponent()`.
    * @private
    */
-  private replaceURLchars(urlStr: string): string {
+  private _replaceURLchars(urlStr: string): string {
     return urlStr.replace(/%7C/g, "|").replace(/%3D/g, "=").replace(/%2B/g, "+");
   }
 
@@ -435,7 +435,7 @@ export class FoxySigner implements Signer {
         console.assert(e.code === "ERR_INVALID_URL");
       }
     }
-    const forms = this.findCartForms(doc);
+    const forms = this._findCartForms(doc);
     forms.forEach(this.form.bind(this));
     return doc;
   }
@@ -451,7 +451,7 @@ export class FoxySigner implements Signer {
     if (this._secret === undefined) {
       throw new Error("No secret was provided to build the hmac");
     }
-    const hmac = crypto.createHmac("sha256", this.secret);
+    const hmac = crypto.createHmac("sha256", this._secret);
     hmac.update(message);
     return hmac.digest("hex");
   }
