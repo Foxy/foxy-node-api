@@ -138,10 +138,13 @@ export class FoxySigner implements Signer {
   }
 
   /**
-   * Signs a sigle query argument to be used in qet * requests.
-   * @private
+   * Signs a single query argument to be used in `GET` requests.
+   *
+   * @param name Product name.
+   * @param code Product code.
+   * @param value Query parameter value.
    */
-  private queryArg(name: string, code: string, value?: string): string {
+  public queryArg(name: string, code: string, value?: string): string {
     name = name.replace(/ /g, "_");
     code = code.replace(/ /g, "_");
     const signature = this.product(code, name, value);
@@ -266,9 +269,10 @@ export class FoxySigner implements Signer {
 
   /**
    * Signs a whole form element.
-   * @private
+   *
+   * @param formElement A reference to the form element to sign.
    */
-  private form(formElement: Element) {
+  public form(formElement: Element) {
     // Grab all codes within the form element
     const codeList: NodeList = formElement.querySelectorAll("[name$=code]");
     // If there is no code field, it shouldn't be signed
@@ -341,9 +345,13 @@ export class FoxySigner implements Signer {
 
   /**
    * Builds a signed query argument given its components.
-   * @private
+   *
+   * @param name Product name.
+   * @param signature Computed signature.
+   * @param value Query parameter value.
+   * @param open If true, appends the dynamic value marker to the parameter key.
    */
-  private buildSignedQueryArg(
+  public buildSignedQueryArg(
     name: string,
     signature: string,
     value: string | number,
@@ -375,10 +383,11 @@ export class FoxySigner implements Signer {
   }
 
   /**
-   * Returns the code from a HTMLAnchorElement or null if it does not contain a code.
-   * @private
+   * Returns the code from a URL or undefined if it does not contain a code.
+   *
+   * @param url URL to perform the lookup on.
    */
-  private getCodeFromURL(url: string): string | undefined {
+  public getCodeFromURL(url: string): string | undefined {
     for (const p of new URL(url).searchParams) {
       if (p[0] == "code") {
         return p[1];
@@ -387,10 +396,12 @@ export class FoxySigner implements Signer {
   }
 
   /**
-   * Find all cart links in a document fragment that contain a query parameter `code`.
-   * @private
+   * Find all cart links in a document fragment that
+   * contain a query parameter named `code`.
+   *
+   * @param doc Document or any other parent node to perform the search on.
    */
-  private findCartLinks(doc: DocumentFragment) {
+  public findCartLinks(doc: ParentNode) {
     return Array.from(doc.querySelectorAll("a")).filter((e) => this.getCodeFromURL(e.href));
   }
 
@@ -433,10 +444,11 @@ export class FoxySigner implements Signer {
    * Signs a simple message. This function can only be invoked after the secret has
    * been defined. The secret can be defined either in the construction method as
    * in `new FoxySigner(mySecret)` or by invoking the setSecret method, as in `signer.setSecret(mySecret)`;
-   * @private
+   *
+   * @param message A text message to sign.
    */
-  private message(message: string): string {
-    if (this.secret === undefined) {
+  public message(message: string): string {
+    if (this._secret === undefined) {
       throw new Error("No secret was provided to build the hmac");
     }
     const hmac = crypto.createHmac("sha256", this.secret);
