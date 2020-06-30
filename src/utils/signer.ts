@@ -398,7 +398,7 @@ export class FoxySigner implements Signer {
    * Find all cart forms in a document fragment that contain an input named `code`.
    * @private
    */
-  private findCartForms(doc: DocumentFragment) {
+  private findCartForms(doc: ParentNode) {
     return Array.from(doc.querySelectorAll("form")).filter((e) => e.querySelector("[name=code]"));
   }
 
@@ -415,7 +415,7 @@ export class FoxySigner implements Signer {
    *
    * @param doc Document fragment to sign.
    */
-  public fragment(doc: DocumentFragment): DocumentFragment {
+  public fragment(doc: ParentNode): ParentNode {
     const links = doc.querySelectorAll("a");
     for (const l of links) {
       try {
