@@ -1,4 +1,3 @@
-import * as crypto from "crypto";
 import * as fs from "fs";
 import { JSDOM } from "jsdom";
 import { FoxyApi } from "../../src";
@@ -16,15 +15,7 @@ describe("Signer", () => {
   <a href="http://example.com">This is a common example</a>
     </section>
   `;
-  const signedMockHTML = `
-  <p>Here is a fragment of HTML</p>
-  <section id="itsComplex">
-  <div class="test">
-  <a id="linktobesigned" href="http://storename?code=ABC123&name||dbaa042ec8018e342058417e058d7a479226976c7cb287664197fd67970c4715=name&value=My+Example+Product">Here is the link</a>
-    </div>
-  <a href="http://example.com">This is a common example</a>
-    </section>
-  `;
+
   const outputPath = "/tmp/foxyTestOutput.html";
 
   it("Properly places the 'open' keyword", () => {
