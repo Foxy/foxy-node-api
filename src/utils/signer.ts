@@ -66,7 +66,7 @@ export class FoxySigner {
 
   /**
    * Signs a query string.
-   * All query fields withing the query string will be signed.
+   * All query fields withing the query string will be signed, provided it is a proper URL and there is a code field
    *
    * @param urlStr Full URL including the query string that needs to be signed.
    */
@@ -147,10 +147,7 @@ export class FoxySigner {
 
   /**
    * Signs a single query argument to be used in `GET` requests.
-   *
-   * @param name Product name.
-   * @param code Product code.
-   * @param value Query parameter value.
+   * @private
    */
   private _queryArg(name: string, code: string, value?: string): string {
     name = name.replace(/ /g, "_");
@@ -277,8 +274,7 @@ export class FoxySigner {
 
   /**
    * Signs a whole form element.
-   *
-   * @param formElement A reference to the form element to sign.
+   * @private
    */
   private _form(formElement: Element) {
     // Grab all codes within the form element
@@ -353,11 +349,7 @@ export class FoxySigner {
 
   /**
    * Builds a signed query argument given its components.
-   *
-   * @param name Product name.
-   * @param signature Computed signature.
-   * @param value Query parameter value.
-   * @param open If true, appends the dynamic value marker to the parameter key.
+   * @private
    */
   private _buildSignedQueryArg(name: string, signature: string, value: string | number) {
     return `${name}||${signature}=${value}`;
@@ -386,8 +378,7 @@ export class FoxySigner {
 
   /**
    * Returns the code from a URL or undefined if it does not contain a code.
-   *
-   * @param url URL to perform the lookup on.
+   * @private
    */
   public getCodeFromURL(url: string): string | undefined {
     for (const p of new URL(url).searchParams) {
@@ -425,8 +416,7 @@ export class FoxySigner {
 
   /**
    * Signs a document fragment. This method is used to sign HTML snippets.
-   *
-   * @param doc Document fragment to sign.
+   * @private
    */
   private _fragment(doc: ParentNode): ParentNode {
     doc.querySelectorAll("a").forEach((l) => {
@@ -437,11 +427,8 @@ export class FoxySigner {
   }
 
   /**
-   * Signs a simple message. This function can only be invoked after the secret has
-   * been defined. The secret can be defined either in the construction method as
-   * in `new FoxySigner(mySecret)` or by invoking the setSecret method, as in `signer.setSecret(mySecret)`;
-   *
-   * @param message A text message to sign.
+   * Signs a simple message. This function can only be invoked after the secret has been defined. The secret can be defined either in the construction method as in `new FoxySigner(mySecret)` or by invoking the setSecret method, as in `signer.setSecret(mySecret)`
+   * @private
    */
   private _message(message: string): string {
     if (this._secret === undefined) {
