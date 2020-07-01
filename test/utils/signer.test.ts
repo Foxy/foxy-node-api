@@ -187,7 +187,7 @@ describe("Signer", () => {
     const dom = new JSDOM(simpleHTML).window.document;
     const f = dom.querySelector("form");
     const prev = f.outerHTML;
-    foxy.hmacSign.form(f);
+    foxy.hmacSign.htmlString(f.outerHTML);
     expect(f.outerHTML).toBe(prev);
   });
 
@@ -213,7 +213,7 @@ describe("Signer", () => {
 
   it("Does not sign without a secret", () => {
     const woSecretFoxy = new FoxySigner();
-    const woSign = () => woSecretFoxy.message("http://signthis");
+    const woSign = () => woSecretFoxy.url("http://signthis?code=test&price=5");
     expect(woSign).toThrowError();
   });
 
