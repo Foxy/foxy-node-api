@@ -42,7 +42,7 @@ export class FoxySigner {
    */
   public htmlString(htmlStr: string) {
     const dom = new JSDOM(htmlStr);
-    this.fragment(dom.window.document);
+    this._fragment(dom.window.document);
     return dom.serialize();
   }
 
@@ -55,7 +55,7 @@ export class FoxySigner {
   public htmlFile(inputPath: string, outputPath: string) {
     return new Promise((resolve, reject) => {
       JSDOM.fromFile(inputPath).then((dom) => {
-        const signed = this.fragment(dom.window.document);
+        const signed = this._fragment(dom.window.document);
         fs.writeFile(outputPath, dom.serialize(), (err) => {
           if (err) reject(err);
           else resolve(signed);
@@ -80,14 +80,14 @@ export class FoxySigner {
     const stripped = new URL(url.origin);
     const originalParams = url.searchParams;
     const newParams = stripped.searchParams;
-    const code = this.getCodeFromURL(urlStr);
+    const code = this._getCodeFromURL(url);
     // If there is no code, return the same URL
     if (!code) {
       return urlStr;
     }
     // sign the url object
     for (const p of originalParams.entries()) {
-      const signed = this.queryArg(
+      const signed = this._queryArg(
         decodeURIComponent(p[0]),
         decodeURIComponent(code),
         decodeURIComponent(p[1])
@@ -134,7 +134,7 @@ export class FoxySigner {
    * @private
    */
   private _product(code: string, name: string, value?: string | number): string {
-    return this.message(code + name + this._valueOrOpen(value));
+    return this._message(code + name + this._valueOrOpen(value));
   }
 
   /**
@@ -144,13 +144,13 @@ export class FoxySigner {
    * @param code Product code.
    * @param value Query parameter value.
    */
-  public queryArg(name: string, code: string, value?: string): string {
+  private _queryArg(name: string, code: string, value?: string): string {
     name = name.replace(/ /g, "_");
     code = code.replace(/ /g, "_");
     const signature = this._product(code, name, value);
     const encodedName = encodeURIComponent(name).replace(/%20/g, "+");
     const encodedValue = encodeURIComponent(this._valueOrOpen(value)).replace(/%20/g, "+");
-    const nameAttr = this.buildSignedQueryArg(encodedName, signature, encodedValue);
+    const nameAttr = this._buildSignedQueryArg(encodedName, signature, encodedValue);
     return nameAttr;
   }
 
@@ -272,7 +272,7 @@ export class FoxySigner {
    *
    * @param formElement A reference to the form element to sign.
    */
-  public form(formElement: Element) {
+  private _form(formElement: Element) {
     // Grab all codes within the form element
     const codeList: NodeList = formElement.querySelectorAll("[name$=code]");
     // If there is no code field, it shouldn't be signed
@@ -351,14 +351,8 @@ export class FoxySigner {
    * @param value Query parameter value.
    * @param open If true, appends the dynamic value marker to the parameter key.
    */
-  public buildSignedQueryArg(
-    name: string,
-    signature: string,
-    value: string | number,
-    open?: boolean
-  ) {
-    const openKey = open ? "||open" : "";
-    return `${name}||${signature}${openKey}=${value}`;
+  private _buildSignedQueryArg(name: string, signature: string, value: string | number) {
+    return `${name}||${signature}=${value}`;
   }
 
   /**
@@ -426,17 +420,11 @@ export class FoxySigner {
    *
    * @param doc Document fragment to sign.
    */
-  public fragment(doc: ParentNode): ParentNode {
-    const links = doc.querySelectorAll("a");
-    for (const l of links) {
-      try {
-        l.href = this.url(l.href);
-      } catch (e) {
-        console.assert(e.code === "ERR_INVALID_URL");
-      }
-    }
-    const forms = this._findCartForms(doc);
-    forms.forEach(this.form.bind(this));
+  private _fragment(doc: ParentNode): ParentNode {
+    doc.querySelectorAll("a").forEach((l) => {
+      l.href = this.url(l.href);
+    });
+    this._findCartForms(doc).forEach(this._form.bind(this));
     return doc;
   }
 
@@ -447,7 +435,7 @@ export class FoxySigner {
    *
    * @param message A text message to sign.
    */
-  public message(message: string): string {
+  private _message(message: string): string {
     if (this._secret === undefined) {
       throw new Error("No secret was provided to build the hmac");
     }
