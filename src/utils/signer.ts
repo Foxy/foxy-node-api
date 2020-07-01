@@ -76,8 +76,16 @@ export class FoxySigner {
       console.error("Attempt to sign a signed URL", urlStr);
       return urlStr;
     }
-    const url = new URL(urlStr);
-    const stripped = new URL(url.origin);
+    // Do not change invalid URLs
+    let url;
+    let stripped;
+    try {
+      url = new URL(urlStr);
+      stripped = new URL(url.origin);
+    } catch (e) {
+      //console.assert(e.code === "ERR_INVALID_URL");
+      return urlStr;
+    }
     const originalParams = url.searchParams;
     const newParams = stripped.searchParams;
     const code = this._getCodeFromURL(url);
