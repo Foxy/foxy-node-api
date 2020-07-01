@@ -387,16 +387,6 @@ export class FoxySigner {
   }
 
   /**
-   * Find all cart links in a document fragment that
-   * contain a query parameter named `code`.
-   *
-   * @param doc Document or any other parent node to perform the search on.
-   */
-  public findCartLinks(doc: ParentNode) {
-    return Array.from(doc.querySelectorAll("a")).filter((e) => this.getCodeFromURL(e.href));
-  }
-
-  /**
    * Find all cart forms in a document fragment that contain an input named `code`.
    * @private
    */

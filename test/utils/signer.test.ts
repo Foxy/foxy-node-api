@@ -18,19 +18,6 @@ describe("Signer", () => {
 
   const outputPath = "/tmp/foxyTestOutput.html";
 
-  it("Properly places the 'open' keyword", () => {
-    expect(foxy.hmacSign.buildSignedQueryArg("name", "sig", "value", true)).toBe(
-      "name||sig||open=value"
-    );
-    expect(foxy.hmacSign.buildSignedQueryArg("name", "sig", "value")).toBe("name||sig=value");
-  });
-
-  it("Signs a message", () => {
-    expect(foxy.hmacSign.message("My secret message")).toBe(
-      "070273763c37748d6da8ef8dde7ef847857c4d61a7016244df0b2843dbf417aa"
-    );
-  });
-
   it("Signs an input name", () => {
     const code = "ABC123";
     const name = "name";
@@ -62,27 +49,6 @@ describe("Signer", () => {
     );
     expect(foxy.hmacSign.value(name, code)).toBe(
       "||open||3f2075135e3455131bd0d6ce8643551e9e2e43bc09dd0474fa3effbe4e588c9e"
-    );
-  });
-
-  it("Signs a query string", () => {
-    const code = "ABC123";
-    const name = "name";
-    const value = "My Example Product";
-    expect(foxy.hmacSign.queryArg(name, code, value)).toBe(
-      "name||dbaa042ec8018e342058417e058d7a479226976c7cb287664197fd67970c4715=My+Example+Product"
-    );
-  });
-
-  it("Finds all the cart Links within a piece of document", () => {
-    expect(foxy.hmacSign.findCartLinks(JSDOM.fragment(mockHTML)).length).toBe(1);
-  });
-
-  it("Signs all links in a code fragment", () => {
-    expect(
-      foxy.hmacSign.fragment(JSDOM.fragment(mockHTML)).querySelector("#linktobesigned").href
-    ).toBe(
-      "http://storename/?code||376d15f565ec374d45571878a14d3f5a705c7ea6b9aea42c1e1b3a39ac1ba7f8=ABC123&name||a0db12544b12078e411f2bb388c470bf099a14b21035d782ecb1bd5bef89a0e0=name&value||dd47bac2aeb87bd6c118d3f89797ab6eddb058ce17a1e302233ba7a00e7b4db4=My+Example+Product"
     );
   });
 
@@ -252,14 +218,9 @@ describe("Signer", () => {
   });
 
   it("Does not sign invalid URL", () => {
-    const simpleHTML = `<div><a href="what://code=test" >Click to buy</a></div>`;
-    const badURL = () => foxy.hmacSign.url(simpleHTML);
-    expect(badURL).toThrowError();
-  });
-
-  it("Detects missing code in url", () => {
-    expect(foxy.hmacSign.getCodeFromURL("http://test.com?nothing=0&else=0")).toBe(undefined);
-    expect(foxy.hmacSign.getCodeFromURL("http://test.com?code=code&else=0")).toBe("code");
+    const badURL = `href="what://code=test"`;
+    const attemptSigned = foxy.hmacSign.url(badURL);
+    expect(badURL).toBe(attemptSigned);
   });
 
   it("Parent code can be missing", () => {
