@@ -279,8 +279,6 @@ export class FoxySigner {
   private _form(formElement: Element) {
     // Grab all codes within the form element
     const codeList: NodeList = formElement.querySelectorAll("[name$=code]");
-    // If there is no code field, it shouldn't be signed
-    if (codeList.length == 0) return;
     // Store all codes in a object
     const codes: any = {};
     for (const node of codeList) {
