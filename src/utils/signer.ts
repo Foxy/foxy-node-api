@@ -378,8 +378,8 @@ export class FoxySigner {
    * Returns the code from a URL or undefined if it does not contain a code.
    * @private
    */
-  public getCodeFromURL(url: string): string | undefined {
-    for (const p of new URL(url).searchParams) {
+  private _getCodeFromURL(url: URL): string | undefined {
+    for (const p of url.searchParams) {
       if (p[0] == "code") {
         return p[1];
       }
