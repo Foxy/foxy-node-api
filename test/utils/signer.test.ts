@@ -6,16 +6,6 @@ import { auth as MockAuth } from "../mocks/settings";
 
 describe("Signer", () => {
   const foxy = new FoxyApi(MockAuth.simple);
-  const mockHTML = `
-  <p>Here is a fragment of HTML</p>
-  <section id="itsComplex">
-  <div class="test">
-  <a id="linktobesigned" href="http://storename?code=ABC123&name=name&value=My Example Product">Here is the link</a>
-    </div>
-  <a href="http://example.com">This is a common example</a>
-    </section>
-  `;
-
   const outputPath = "/tmp/foxyTestOutput.html";
 
   it("Signs an input name", () => {
