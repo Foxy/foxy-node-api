@@ -13,7 +13,7 @@ import {
 
 type Version = "1";
 
-type AuthInit = {
+export type AuthInit = {
   /**
    * OAuth2 client ID for your integration.
    * If omitted from the config, the value of the `FOXY_API_CLIENT_ID` env var will be used.

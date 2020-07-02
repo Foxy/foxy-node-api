@@ -247,3 +247,10 @@ export type Order<Curie> =
       | Partial<Record<ArrayItem<Fields<Curie>>, "asc" | "desc">>
     )[]
   | Partial<Record<ArrayItem<Fields<Curie>>, "asc" | "desc">>;
+
+export type CodesDict = {
+  [key: number]: {
+    code: string;
+    parent: string;
+  };
+};
