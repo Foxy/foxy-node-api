@@ -3,18 +3,21 @@ import * as crypto from "crypto";
 export interface VerificationParams {
   /**
    * The `Foxy-Webhook-Signature` header value received with the webhook.
+   *
    * @see https://wiki.foxycart.com/v/2.0/webhooks
    */
   signature: string;
 
   /**
    * The serialized (string) request body received with the webhook.
+   *
    * @see https://wiki.foxycart.com/v/2.0/webhooks
    */
   payload: string;
 
   /**
    * The encryption key for this particular webhook.
+   *
    * @see https://wiki.foxycart.com/v/2.0/webhooks
    */
   key: string;

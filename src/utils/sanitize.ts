@@ -7,7 +7,6 @@ type Mapper = (this: TraverseContext, v: any) => void;
  * during the node visit.
  *
  * @param mappers list of mapper functions to run
- *
  * @example
  * const sanitizedResponse = traverse(response).map(all(
  *   removePrivateAttributes,
@@ -24,6 +23,8 @@ export function all(...mappers: Mapper[]): Mapper {
  * A https://www.npmjs.com/package/traverse mapper that removes all
  * private attributes from the response object.
  *
+ * @param this object traversal context
+ * @param v current property value
  * @example const sanitizedResponse = traverse(response).map(removePrivateAttributes);
  */
 export function removePrivateAttributes(this: TraverseContext, v: any): void {
@@ -39,6 +40,7 @@ export function removePrivateAttributes(this: TraverseContext, v: any): void {
  * A https://www.npmjs.com/package/traverse mapper that removes all
  * sensitive data such as password hashes or internal identifiers from the response object.
  *
+ * @param this traversal context
  * @example const sanitizedResponse = traverse(response).map(removeSensitiveData);
  */
 export function removeSensitiveData(this: TraverseContext): void {

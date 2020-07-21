@@ -142,14 +142,13 @@ export class Sender<Graph extends ApiGraph, Host extends PathMember> extends Res
    * or `foxy.follow(...).fetch()` instead.
    *
    * @example
-   *
    * const response = await foxy.follow("fx:store").fetchRaw({
-   * url: "https://api.foxycart.com/stores/8",
-   * method: "POST",
-   * body: { ... }
+   *   url: "https://api.foxycart.com/stores/8",
+   *   method: "POST",
+   *   body: { ... }
    * });
-   * @param params
-   * @param init fetch-like request initializer supporting url, method and body params
+   *
+   * @param params request options
    */
   async fetchRaw(params: SendRawInit<Host>): Promise<Resource<Graph, Host>> {
     const method = params.method ?? "GET";
@@ -249,7 +248,7 @@ export class Sender<Graph extends ApiGraph, Host extends PathMember> extends Res
     if (params?.method) rawParams.method = params.method;
 
     try {
-      return (await this.fetchRaw({ url, ...rawParams })) as any;
+      return (await this.fetchRaw(rawParams)) as any;
     } catch (e) {
       if (!params?.skipCache && e.message.includes("No route found")) {
         this._auth.log({
@@ -258,7 +257,7 @@ export class Sender<Graph extends ApiGraph, Host extends PathMember> extends Res
         });
 
         url = new URL(await this.resolve(true));
-        return this.fetchRaw({ url, ...rawParams }) as any;
+        return this.fetchRaw(rawParams) as any;
       } else {
         this._auth.log({ level: "error", message: e.message });
         throw e;
