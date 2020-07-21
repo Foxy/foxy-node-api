@@ -3,6 +3,11 @@ import { FoxyApi } from "../src";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import fetch from "node-fetch";
 
+/**
+ * Generates a fresh FoxyApi instance with pre-defined set of options.
+ *
+ * @param args FoxyApi constructor arguments to override the defaults
+ */
 async function createFoxy(...args: ConstructorParameters<typeof FoxyApi>) {
   return new FoxyApi({
     clientId: "0",

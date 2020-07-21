@@ -1,4 +1,5 @@
 import fetch from "node-fetch";
+import { URL } from "url";
 import { FOXY_API_URL } from "./env";
 import { PathMember } from "./types/utils";
 import { Auth } from "./auth";

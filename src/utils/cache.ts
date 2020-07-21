@@ -40,7 +40,8 @@ export class DiskCache implements Cache {
   private _dir: string;
 
   /**
-   * Creates an instance of `DiskCache`
+   * Creates an instance of `DiskCache`.
+   *
    * @param dir path to where the cache files will be stored (must exist)
    */
   constructor(dir: string) {
@@ -74,6 +75,7 @@ export class MixedCache implements Cache {
 
   /**
    * Creates an instance of `MixedCache`.
+   *
    * @param caches list of cache providers to combine
    */
   constructor(caches: Cache[] = []) {
