@@ -1,5 +1,6 @@
 import * as winston from "winston";
 import * as logform from "logform";
+import { URLSearchParams } from "url";
 import fetch from "node-fetch";
 import { Cache, MemoryCache } from "./utils/cache";
 import { Props } from "./types/api/props";

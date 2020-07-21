@@ -1,6 +1,7 @@
 import * as crypto from "crypto";
 import { CodesDict } from "../types/utils";
 import { JSDOM } from "jsdom";
+import { URL } from "url";
 import * as fs from "fs";
 
 /**

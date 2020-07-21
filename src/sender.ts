@@ -1,5 +1,6 @@
 import fetch from "node-fetch";
 import traverse from "traverse";
+import { URL, URLSearchParams } from "url";
 import { Methods } from "./types/api/methods";
 
 import {
@@ -142,10 +143,11 @@ export class Sender<Graph extends ApiGraph, Host extends PathMember> extends Res
    * @example
    *
    * const response = await foxy.follow("fx:store").fetchRaw({
-   *   url: "https://api.foxycart.com/stores/8",
-   *   method: "POST",
-   *   body: { ... }
+   * url: "https://api.foxycart.com/stores/8",
+   * method: "POST",
+   * body: { ... }
    * });
+   * @param params
    * @param init fetch-like request initializer supporting url, method and body params
    */
   async fetchRaw(params: SendRawInit<Host>): Promise<Resource<Graph, Host>> {

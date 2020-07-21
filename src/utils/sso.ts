@@ -1,3 +1,4 @@
+import { URL } from "url";
 import * as crypto from "crypto";
 
 interface Options {
