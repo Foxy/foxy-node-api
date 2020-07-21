@@ -47,23 +47,23 @@ export function removeSensitiveData(this: TraverseContext): void {
   const key = this.key;
   if (typeof key === "undefined") return;
 
-  const blacklist = ["password", "third_party_id"];
-  if (blacklist.find((v) => key.startsWith(v))) this.remove();
+  const propsToRemove = ["password", "third_party_id"];
+  if (propsToRemove.find((v) => key.startsWith(v))) this.remove();
 }
 
 /**
  * Creates a https://www.npmjs.com/package/traverse mapper that removes all
- * relations from the response object that aren't listed in the `whitelist` array.
+ * relations from the response object that aren't listed in the `linksToKeep` array.
  *
- * @param whitelist array of relation keys to keep
+ * @param linksToKeep array of relation keys to keep
  * @example const sanitizedResponse = traverse(response).map(removeAllLinksExcept("self", "next"));
  */
-export function removeAllLinksExcept(...whitelist: string[]): () => void {
+export function removeAllLinksExcept(...linksToKeep: string[]): () => void {
   return function (this: TraverseContext): void {
     if (
       typeof this.key !== "undefined" &&
       this.parent?.key === "_links" &&
-      whitelist.includes(this.key) === false
+      linksToKeep.includes(this.key) === false
     ) {
       this.remove();
     }
@@ -72,13 +72,13 @@ export function removeAllLinksExcept(...whitelist: string[]): () => void {
 
 /**
  * Creates a https://www.npmjs.com/package/traverse mapper that removes all
- * properties from the response object that match the keys of the `blacklist` array.
+ * properties from the response object that match the keys of the `propsToRemove` array.
  *
- * @param blacklist array of properties to remove
+ * @param propsToRemove array of properties to remove
  * @example const sanitizedResponse = traverse(response).map(removeProperties("password_hash", "third_party_id"));
  */
-export function removeProperties(...blacklist: string[]): () => void {
+export function removeProperties(...propsToRemove: string[]): () => void {
   return function (this: TraverseContext): void {
-    if (this.key && blacklist.includes(this.key)) this.remove();
+    if (this.key && propsToRemove.includes(this.key)) this.remove();
   };
 }
