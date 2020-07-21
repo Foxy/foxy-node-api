@@ -17,6 +17,7 @@ import {
 
 import { Resolver } from "./resolver";
 import { Props } from "./types/api/props";
+import { ApiError } from "./error";
 
 type SendBody<Host, Method> = Method extends HTTPMethodWithBody
   ? Host extends keyof Props
@@ -168,7 +169,7 @@ export class Sender<Graph extends ApiGraph, Host extends PathMember> extends Res
       message: `${method} ${params.url} [${response.status} ${response.statusText}]`,
     });
 
-    if (!response.ok) throw new Error(await response.text());
+    if (!response.ok) throw new ApiError(await response.text(), response.status);
 
     return traverse(await response.json()).map(function (value: any) {
       // formats locales as "en-US" as opposed to "en_US"
