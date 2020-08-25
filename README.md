@@ -122,6 +122,18 @@ await store.fetch({ method: "GET" });
 await store.fetch();
 ```
 
+`fetch` accepts a few parameters, including `query` and `zoom`, which can be used for searching, filtering, or otherwise modifying the request. For instance, here's an example showing how to retrieve a specific cart by ID:
+
+```js
+const getCart = async (id) => {
+  const carts = await store.follow("fx:carts").fetch({
+    query: { id },
+    zoom: { items: ["item_options"] }
+  });
+  return carts._embedded["fx:carts"][0] || {};
+}
+```
+
 #### Hint: opt out of smart path resolution
 
 By default our client will try to leverage the built-in resolvers to make as few network calls as possible when following relations. These resolvers aren't perfect yet and even though we have a failsafe mechanism that runs a full tree traversal on failure, silent errors are still a possibility (e.g. when the resolved path is valid, but points to a wrong resource). In that case you can set `FetchInit.skipCache` option to `true` to disable smart path resolution:
@@ -162,7 +174,7 @@ The HMAC validation is recommended to prevent a malicious user from tampering wi
 The HMAC signer utility is provided as part of the set of tools available in the `FoxyAPI`. It is available as the `hmacSign` property of `FoxyApi` instance.
 
 
-### Signing 
+### Signing
 
 The FoxySigner utility provides the following basic methods:
 
