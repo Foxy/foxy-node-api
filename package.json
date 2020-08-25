@@ -8,6 +8,7 @@
     "dist"
   ],
   "scripts": {
+    "docs": "jsdoc -r src -c jsdoc.json -d docs",
     "test": "jest --config ./jest.config.json",
     "test:watch": "jest --watch --config ./jest.config.json",
     "lint": "tsc --noEmit && eslint \"{src,test}/**/*.ts\" --quiet --fix",
@@ -46,6 +47,7 @@
     "@typescript-eslint/eslint-plugin": "^2.25.0",
     "@typescript-eslint/parser": "^2.25.0",
     "babel-jest": "^25.2.4",
+    "better-docs": "^2.3.1",
     "cz-conventional-changelog": "^3.1.0",
     "eslint": "^6.8.0",
     "eslint-config-prettier": "^6.10.1",
@@ -53,6 +55,7 @@
     "eslint-plugin-prettier": "^3.1.2",
     "husky": "^4.2.3",
     "jest": "^25.2.4",
+    "jsdoc": "^3.6.5",
     "lint-staged": "^10.0.10",
     "mock-fs": "^4.11.0",
     "prettier": "^2.0.2",

@@ -1,0 +1,37 @@
+{
+  "tags": {
+    "allowUnknownTags": ["optional"]
+  },
+  "plugins": ["node_modules/better-docs/typescript"],
+  "source": {
+    "includePattern": "\\.(jsx|js|ts|tsx)$"
+  },
+  "opts": {
+    "template": "node_modules/better-docs"
+  },
+  "templates": {
+    "cleverLinks": false,
+    "monospaceLinks": false,
+    "search": false,
+    "default": {
+      "staticFiles": {
+        "include": []
+      }
+    },
+    "better-docs": {
+      "logo": "https://static.www.foxycart.com/brand-assets/logos/Foxy%20SM%20(transparent%20bg).png",
+      "title": "Foxy.io Hypermedia API Documentation",
+      "hideGenerator": false,
+      "navLinks": [
+        {
+          "label": "www home",
+          "href": "https://foxy.io/"
+        },
+        {
+          "label": "API home",
+          "href": "https://api.foxycart.com/"
+        }
+      ]
+    }
+  }
+}
