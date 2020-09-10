@@ -34,20 +34,25 @@ describe("FoxyApi.sanitize", () => {
 
   it("exposes a functional private attribute remover as .removePrivateAttributes", () => {
     const result = traverse({
-      "fx:attributes": [
-        {
-          name: "foo",
-          visibility: "private",
-        },
-        {
-          name: "bar",
-          visibility: "public",
-        },
-      ],
+      _links: {
+        "fx:attributes": {},
+      },
+      _embedded: {
+        "fx:attributes": [
+          {
+            name: "foo",
+            visibility: "private",
+          },
+          {
+            name: "bar",
+            visibility: "public",
+          },
+        ],
+      },
     }).map(FoxyApi.sanitize.removePrivateAttributes);
 
-    expect(result["fx:attributes"]).toHaveLength(1);
-    expect(result["fx:attributes"][0]).toHaveProperty("name", "bar");
+    expect(result._embedded["fx:attributes"]).toHaveLength(1);
+    expect(result._embedded["fx:attributes"][0]).toHaveProperty("name", "bar");
   });
 
   it("exposes a traversal utility to run multiple mappers at once as FoxyApi.sanitize.all", () => {
