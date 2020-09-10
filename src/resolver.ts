@@ -1,14 +1,24 @@
 import fetch from "node-fetch";
 import { URL } from "url";
-import { FOXY_API_URL } from "./env";
-import { PathMember } from "./types/utils";
 import { Auth } from "./auth";
+import { FOXY_API_URL } from "./env";
+import { collections, Collections } from "./types/api/collections";
+import { PathMember } from "./types/utils";
 
 const throwIfVoid = async (promise: Promise<string | undefined>) => {
   const result = await promise;
   if (typeof result === "undefined") throw void 0;
   return result;
 };
+
+export class ResolverResolutionError extends Error {
+  constructor(path: PathMember[], originalError: Error) {
+    super(
+      `URL resolution failed for the following path: ${path.join(" => ")}.\n` +
+        `Details: ${originalError.message}.`
+    );
+  }
+}
 
 /**
  * Part of the API functionality that restores full URLs from
@@ -46,7 +56,7 @@ export class Resolver {
     await Promise.all(queue);
   }
 
-  private async _traverse(baseUrl: string, rel: PathMember) {
+  private async _traverse(baseUrl: string, rel: PathMember, path: PathMember[]) {
     const response = await fetch(baseUrl, {
       headers: {
         "FOXY-API-VERSION": this._auth.version,
@@ -70,16 +80,33 @@ export class Resolver {
     return result;
   }
 
-  private async _tryIdResolver(baseUrl: string, rel: PathMember) {
+  private async _tryIdResolver(baseUrl: string, rel: PathMember, path: PathMember[]) {
     if (typeof rel !== "number") throw void 0;
 
-    const result = `${baseUrl}/${rel.toString()}`;
-    this._auth.log({ level: "debug", message: `resolved offline: ${result}` });
+    let previousCurie = path[path.length - 1] as PathMember | undefined;
+    let result = "";
 
+    if (previousCurie === "fx:attributes") {
+      const parentPath = path.reverse().slice(1);
+      const parentCurie = parentPath.find((v) => typeof v === "string") as
+        | keyof Collections
+        | undefined;
+
+      previousCurie = collections[parentCurie as keyof Collections] ?? parentCurie;
+      previousCurie = `${previousCurie}_attributes`;
+    }
+
+    if (typeof previousCurie === "string" && previousCurie.startsWith("fx:")) {
+      result = `${this._apiUrl}/${previousCurie.substring(3)}/${rel}`;
+    } else {
+      result = `${baseUrl}/${rel}`;
+    }
+
+    this._auth.log({ level: "debug", message: `resolved offline: ${result}` });
     return result;
   }
 
-  private async _tryStaticResolver(baseUrl: string, rel: PathMember) {
+  private async _tryStaticResolver(baseUrl: string, rel: PathMember, path: PathMember[]) {
     let result: string;
 
     switch (rel) {
@@ -97,6 +124,10 @@ export class Resolver {
         result = `${this._apiUrl}/rels`;
         break;
 
+      case "fx:attributes":
+        result = `${baseUrl}/attributes`;
+        break;
+
       case "fx:property_helpers":
       case "fx:reporting":
       case "fx:encode":
@@ -112,7 +143,7 @@ export class Resolver {
     return result;
   }
 
-  private async _tryCacheResolver(baseUrl: string, rel: PathMember) {
+  private async _tryCacheResolver(baseUrl: string, rel: PathMember, path: PathMember[]) {
     const whenGotStore = this._auth.cache.get("fx_resolver_store");
     const whenGotUser = this._auth.cache.get("fx_resolver_user");
 
@@ -136,7 +167,6 @@ export class Resolver {
         break;
 
       case "fx:users":
-      case "fx:attributes":
       case "fx:user_accesses":
       case "fx:customers":
       case "fx:carts":
@@ -193,20 +223,24 @@ export class Resolver {
     });
 
     for (let i = 0; i < this._path.length; ++i) {
-      const args = [url, this._path[i]] as const;
+      const args = [url, this._path[i], this._path.slice(0, i)] as const;
 
       this._auth.log({
         level: "debug",
         message: `[${i + 1}/${this._path.length}] ${url} => [${this._path[i].toString()}]`,
       });
 
-      if (skipCache) {
-        url = await this._traverse(...args);
-      } else {
-        url = await this._tryStaticResolver(...args)
-          .catch(() => this._tryCacheResolver(...args))
-          .catch(() => this._tryIdResolver(...args))
-          .catch(() => this._traverse(...args));
+      try {
+        if (skipCache) {
+          url = await this._traverse(...args);
+        } else {
+          url = await this._tryStaticResolver(...args)
+            .catch(() => this._tryCacheResolver(...args))
+            .catch(() => this._tryIdResolver(...args))
+            .catch(() => this._traverse(...args));
+        }
+      } catch (err) {
+        throw new ResolverResolutionError(this._path, err);
       }
     }
 
