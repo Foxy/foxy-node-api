@@ -181,6 +181,7 @@ export class Resolver {
       case "fx:template_configs":
       case "fx:cart_templates":
       case "fx:cart_include_templates":
+      case "fx:customer_portal_settings":
       case "fx:checkout_templates":
       case "fx:receipt_templates":
       case "fx:email_templates":

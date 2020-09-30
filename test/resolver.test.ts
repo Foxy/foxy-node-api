@@ -125,6 +125,7 @@ describe("Resolver", () => {
       "fx:cart_templates": "https://api.foxycart.dev/stores/123/cart_templates",
       "fx:cart_include_templates": "https://api.foxycart.dev/stores/123/cart_include_templates",
       "fx:checkout_templates": "https://api.foxycart.dev/stores/123/checkout_templates",
+      "fx:customer_portal_settings": "https://api.foxycart.dev/stores/123/customer_portal_settings",
       "fx:receipt_templates": "https://api.foxycart.dev/stores/123/receipt_templates",
       "fx:email_templates": "https://api.foxycart.dev/stores/123/email_templates",
       "fx:error_entries": "https://api.foxycart.dev/stores/123/error_entries",
