@@ -1,4 +1,5 @@
 export interface Methods {
+  "fx:customer_portal_settings": "GET" | "PUT" | "HEAD" | "PATCH" | "DELETE" | "OPTIONS";
   "fx:create_client": "POST" | "OPTIONS";
   "fx:client": "GET" | "PUT" | "HEAD" | "PATCH" | "DELETE" | "OPTIONS";
   "fx:create_user": "POST" | "OPTIONS";

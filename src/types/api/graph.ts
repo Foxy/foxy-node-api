@@ -463,6 +463,11 @@ interface SubscriptionSettings {
   "fx:store": Store;
 }
 
+interface CustomerPortalSettings {
+  "self": CustomerPortalSettings;
+  "fx:store": Store;
+}
+
 interface Store {
   "self": Store;
   "fx:attributes": IndexedCollection<StoreAttribute>;
@@ -482,6 +487,7 @@ interface Store {
   "fx:cart_templates": Collection;
   "fx:cart_include_templates": Collection;
   "fx:checkout_templates": Collection;
+  "fx:customer_portal_settings": CustomerPortalSettings;
   "fx:receipt_templates": Collection;
   "fx:email_templates": Collection;
   "fx:error_entries": IndexedCollection<ErrorEntry>;

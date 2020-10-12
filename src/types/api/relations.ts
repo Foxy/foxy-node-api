@@ -22,6 +22,7 @@
 
 /** Relation name mappings (name to compact URI). */
 export interface Relations {
+  customer_portal_settings: "fx:customer_portal_settings";
   default_shipping_address: "fx:default_shipping_address";
   default_billing_address: "fx:default_billing_address";
   store_shipping_services: "fx:store_shipping_services";

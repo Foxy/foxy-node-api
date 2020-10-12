@@ -28,7 +28,7 @@ export function all(...mappers: Mapper[]): Mapper {
  * @example const sanitizedResponse = traverse(response).map(removePrivateAttributes);
  */
 export function removePrivateAttributes(this: TraverseContext, v: any): void {
-  if (this.key === "fx:attributes") {
+  if (this.key === "fx:attributes" && Array.isArray(v)) {
     this.update(
       v.filter((attr: any) => attr.visibility === "public"),
       true

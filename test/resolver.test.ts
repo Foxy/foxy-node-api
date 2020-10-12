@@ -1,5 +1,5 @@
 import { Auth } from "../src/auth";
-import { Resolver } from "../src/resolver";
+import { Resolver, ResolverResolutionError } from "../src/resolver";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import fetch, { RequestInit } from "node-fetch";
@@ -23,6 +23,7 @@ describe("Resolver", () => {
       body._links = {
         "fx:store": { href: "https://api.foxycart.dev/stores/123" },
         "fx:user": { href: "https://api.foxycart.dev/users/456" },
+        "fx:wut": { href: "https://example.com" },
       };
     }
 
@@ -41,7 +42,19 @@ describe("Resolver", () => {
     expect(await new Resolver(auth).resolve()).toBe(FOXY_API_URL);
   });
 
-  it("appends numeric id to the url when provided with path", async () => {
+  it("resolves resource url for paths ending with a numeric id", async () => {
+    const path = ["fx:store", "fx:carts", 123];
+    const resolver = new Resolver(auth, path, "https://api.foxycart.dev");
+    expect(await resolver.resolve()).toBe("https://api.foxycart.dev/carts/123");
+  });
+
+  it("resolves attribute url for paths ending with a numeric id", async () => {
+    const path = ["fx:store", "fx:attributes", 123];
+    const resolver = new Resolver(auth, path, "https://api.foxycart.dev");
+    expect(await resolver.resolve()).toBe("https://api.foxycart.dev/store_attributes/123");
+  });
+
+  it("when provided with an unknown path, simply appends numeric id to the url", async () => {
     const resolver = new Resolver(auth, [123], "https://api.foxycart.dev");
     expect(await resolver.resolve()).toBe("https://api.foxycart.dev/123");
   });
@@ -52,14 +65,14 @@ describe("Resolver", () => {
   });
 
   it("adds offset=0 param to url when resolving first rels", async () => {
-    const resolver = new Resolver(auth, [123, "first"], "https://api.foxycart.dev");
-    expect(await resolver.resolve()).toBe("https://api.foxycart.dev/123?offset=0");
+    const resolver = new Resolver(auth, ["fx:attributes", "first"], "https://api.foxycart.dev");
+    expect(await resolver.resolve()).toBe("https://api.foxycart.dev/attributes?offset=0");
   });
 
-  it("throws an error containing the response text on if fetch fails", async () => {
+  it("throws an error if resolution fails", async () => {
     fetchAlias.mockImplementationOnce(async () => new Response("error", { status: 500 }));
     const resolver = new Resolver(auth, ["fx:fakerel"]);
-    await expect(resolver.resolve()).rejects.toThrow("error");
+    await expect(resolver.resolve()).rejects.toThrow(ResolverResolutionError);
   });
 
   it("skips cache if called with skipCache === true", async () => {
@@ -98,7 +111,6 @@ describe("Resolver", () => {
       "fx:stores": "https://api.foxycart.dev/users/456/stores",
       "fx:subscription_settings": "https://api.foxycart.dev/store_subscription_settings/123",
       "fx:users": "https://api.foxycart.dev/stores/123/users",
-      "fx:attributes": "https://api.foxycart.dev/stores/123/attributes",
       "fx:user_accesses": "https://api.foxycart.dev/stores/123/user_accesses",
       "fx:customers": "https://api.foxycart.dev/stores/123/customers",
       "fx:carts": "https://api.foxycart.dev/stores/123/carts",
@@ -113,6 +125,7 @@ describe("Resolver", () => {
       "fx:cart_templates": "https://api.foxycart.dev/stores/123/cart_templates",
       "fx:cart_include_templates": "https://api.foxycart.dev/stores/123/cart_include_templates",
       "fx:checkout_templates": "https://api.foxycart.dev/stores/123/checkout_templates",
+      "fx:customer_portal_settings": "https://api.foxycart.dev/stores/123/customer_portal_settings",
       "fx:receipt_templates": "https://api.foxycart.dev/stores/123/receipt_templates",
       "fx:email_templates": "https://api.foxycart.dev/stores/123/email_templates",
       "fx:error_entries": "https://api.foxycart.dev/stores/123/error_entries",
