@@ -128,10 +128,10 @@ await store.fetch();
 const getCart = async (id) => {
   const carts = await store.follow("fx:carts").fetch({
     query: { id },
-    zoom: { items: ["item_options"] }
+    zoom: { items: ["item_options"] },
   });
   return carts._embedded["fx:carts"][0] || {};
-}
+};
 ```
 
 #### Hint: opt out of smart path resolution
@@ -173,7 +173,6 @@ The HMAC validation is recommended to prevent a malicious user from tampering wi
 
 The HMAC signer utility is provided as part of the set of tools available in the `FoxyAPI`. It is available as the `hmacSign` property of `FoxyApi` instance.
 
-
 ### Signing
 
 The FoxySigner utility provides the following basic methods:
@@ -184,7 +183,7 @@ The FoxySigner utility provides the following basic methods:
 
 There are also some more advanced methods that allow you to create signatures to be used in your fields and queries, thus integrating the signatures more directly in your application or templates.
 
-Please, notice that **HMAC VALIDATION IS ALL OR NOTHING**.  Signing individual name/value elements is only useful if you do sign all fields individually.
+Please, notice that **HMAC VALIDATION IS ALL OR NOTHING**. Signing individual name/value elements is only useful if you do sign all fields individually.
 
 #### Obtaining a FoxySigner instance
 
@@ -195,15 +194,17 @@ If you are not using `FoxyApi`, you can directly create an instance of `FoxySign
 ##### Creating a signer without a FoxyApi instance
 
 This is the recommended approach, unless you actually need the rest of `FoxyApi`.
+
 ```js
 import { FoxySigner } from "@foxy.io/utils/signer";
 const hmacSign = new FoxySigner();
-hmacSign.setSecret('long-alphanumeric-client-secret');
+hmacSign.setSecret("long-alphanumeric-client-secret");
 ```
 
 ##### Using your FoxyApi instance
 
 Note, again, that unless you actually need `FoxyApi`, you should use the above method.
+
 ```ts
 import { FoxyApi } from "@foxy.io/node-api";
 const foxy = new FoxyApi({
@@ -231,10 +232,8 @@ This operation is asynchronous.
 
 ```js
 hmacSign.setSecret("MySuperSecretKey");
-const signedHTML = hmacSign.htmlFile(pathToInputFile, pathToOutputFile)
-	.then(callback);
+const signedHTML = hmacSign.htmlFile(pathToInputFile, pathToOutputFile).then(callback);
 ```
-
 
 #### Sign a URL
 
@@ -247,16 +246,16 @@ Here is an example URL: `https://yourdomain.foxycart.com/cart?name=Flute%20Warm-
 
 Note that the **`code`** parameter is required. If `code` is not present, the URL will not be signed. (This goes for all links and forms.)
 
-
 ```js
 hmacSign.setSecret("MySuperSecretKey");
 const signedURL = hmacSign.url(unsigedURL);
 ```
+
 The `signedURL` variable should be used as the link `href` attribute.
 
 #### Sign individual name/value elements
 
-Signing individual name/value elements is a more advanced topics.  It will allow you to provide purchases of several products with a single click and to specify complex products.
+Signing individual name/value elements is a more advanced topics. It will allow you to provide purchases of several products with a single click and to specify complex products.
 
 You must, however, be sure to sign all the fields properly.
 
@@ -277,8 +276,6 @@ const signedValue = hmacSign.value(unsignedName, code, parentCode, value);
 Please, be careful to use the signed value in the name or value attribute as described in the documentation.
 
 Notably, the signed value is used for the `option` elements in a `select` element and also for radio buttons.
-
-
 
 ## Development
 
@@ -301,4 +298,3 @@ Committing changes with [commitizen](https://github.com/commitizen/cz-cli):
 ```bash
 git commit # precommit hooks will lint the staged files and help you format your message correctly
 ```
-
