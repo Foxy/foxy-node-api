@@ -66,7 +66,7 @@ const api = new FoxySDK.Integration.API({
 
 ### Before
 
-In Node API package you could set `config.cache` to persist credentials between service invokations if it provided better performance for your use case:
+In Node API package you could set `config.cache` to persist credentials between service invocations if it provided better performance for your use case:
 
 ```js
 const api = new FoxyApi({
