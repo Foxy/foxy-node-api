@@ -1,6 +1,6 @@
-## Node.js FoxyCart hAPI client
+# Node.js FoxyCart hAPI client (deprecated)
 
-> Warning: this is a pre-release software. We're still working on the feature set, documentation and test coverage. Using this package in production is not advised.
+**Hey there! This package is no longer maintained. We've learned a lot while beta testing this API client and built a brand new, better [`@foxy.io/sdk`](https://github.com/Foxy/foxy-sdk) package as a result. Check out our [upgrade guide](https://github.com/Foxy/foxy-node-api/blob/master/UPGRADE.md) for more details. Thank you to everyone who participated in our beta program and we hope that you will enjoy working with the new tools from Team Foxy :)**
 
 ## Setup
 
